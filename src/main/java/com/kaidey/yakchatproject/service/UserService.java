@@ -8,7 +8,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
-import java.time.LocalDateTime;
+import java.util.List;
 import java.util.Optional;
 
 @Service
@@ -18,35 +18,55 @@ public class UserService {
     private UserRepository userRepository;
 
     @Autowired
-    private PasswordEncoder passwordEncoder; // 비밀번호 암호화를 위한 빈
+    private PasswordEncoder passwordEncoder;
 
     @Autowired
-    private JwtTokenProvider jwtTokenProvider; // JWT 토큰 생성기
+    private JwtTokenProvider jwtTokenProvider;
 
-    public UserDto registerUser(UserDto userDto) {
+    // 사용자 등록
+    public User registerUser(UserDto userDto) {
         User user = new User();
         user.setUsername(userDto.getUsername());
         user.setPassword(passwordEncoder.encode(userDto.getPassword())); // 비밀번호 암호화
         user.setSchool(userDto.getSchool());
         user.setGrade(userDto.getGrade());
         user.setAge(userDto.getAge());
-        user.setCreatedAt(LocalDateTime.now());
-        user.setIsActive(true); // 기본적으로 활성화 상태
-
-        userRepository.save(user);
-        return userDto; // 혹은 변환된 UserDto를 반환
+        return userRepository.save(user);
     }
 
-    public Optional<String> login(String username, String password) {
-        Optional<User> userOptional = userRepository.findByUsername(username);
-        if (userOptional.isPresent()) {
-            User user = userOptional.get();
-            if (passwordEncoder.matches(password, user.getPassword())) {
-                user.updateLastLogin(); // 마지막 로그인 시간 업데이트
-                userRepository.save(user); // 업데이트된 사용자 저장
-                return Optional.of(jwtTokenProvider.generateToken(user.getUsername())); // JWT 토큰 반환
-            }
+    // 사용자 로그인
+    public String loginUser(UserDto userDto) {
+        Optional<User> userOptional = userRepository.findByUsername(userDto.getUsername());
+        if (userOptional.isPresent() && passwordEncoder.matches(userDto.getPassword(), userOptional.get().getPassword())) {
+            return jwtTokenProvider.generateToken(userDto.getUsername());
+        } else {
+            throw new RuntimeException("Invalid username or password"); // 예외 처리
         }
-        return Optional.empty(); // 로그인 실패
+    }
+
+    // 특정 사용자 조회
+    public User getUserById(Long id) {
+        return userRepository.findById(id).orElseThrow(() -> new RuntimeException("User not found"));
+    }
+
+    // 모든 사용자 조회
+    public List<User> getAllUsers() {
+        return userRepository.findAll();
+    }
+
+    // 사용자 정보 업데이트
+    public User updateUser(Long id, UserDto userDto) {
+        User user = getUserById(id);
+        user.setUsername(userDto.getUsername());
+        user.setPassword(passwordEncoder.encode(userDto.getPassword())); // 비밀번호 암호화
+        user.setSchool(userDto.getSchool());
+        user.setGrade(userDto.getGrade());
+        user.setAge(userDto.getAge());
+        return userRepository.save(user);
+    }
+
+    // 사용자 삭제
+    public void deleteUser(Long id) {
+        userRepository.deleteById(id);
     }
 }

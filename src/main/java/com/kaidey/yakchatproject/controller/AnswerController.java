@@ -1,7 +1,9 @@
 package com.kaidey.yakchatproject.controller;
 
+import com.kaidey.yakchatproject.dto.AnswerDto;
 import com.kaidey.yakchatproject.entity.Answer;
 import com.kaidey.yakchatproject.service.AnswerService;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -10,43 +12,37 @@ import java.util.List;
 @RestController
 @RequestMapping("/api/answers")
 public class AnswerController {
-    private final AnswerService answerService;
 
-    public AnswerController(AnswerService answerService) {
-        this.answerService = answerService;
+    @Autowired
+    private AnswerService answerService;
+
+    @PostMapping
+    public ResponseEntity<Answer> createAnswer(@RequestBody AnswerDto answerDto) {
+        Answer newAnswer = answerService.createAnswer(answerDto);
+        return ResponseEntity.ok(newAnswer);
     }
 
-    //모든 답변 반환
-    @GetMapping
-    public List<Answer> getAllAnswers() {
-        return answerService.findAll();
-    }
-
-    //주어진 id에 해당하는 답변 반환
     @GetMapping("/{id}")
     public ResponseEntity<Answer> getAnswerById(@PathVariable Long id) {
-        return answerService.findById(id)
-                .map(ResponseEntity::ok)
-                .orElse(ResponseEntity.notFound().build());
+        Answer answer = answerService.getAnswerById(id);
+        return ResponseEntity.ok(answer);
     }
 
-    // 답변 생성
-    @PostMapping
-    public Answer createAnswer(@RequestBody Answer answer) {
-        return answerService.save(answer);
+    @GetMapping
+    public ResponseEntity<List<Answer>> getAllAnswers() {
+        List<Answer> answers = answerService.getAllAnswers();
+        return ResponseEntity.ok(answers);
     }
 
-    //주어진 id에 해당하는 답변 수정
     @PutMapping("/{id}")
-    public ResponseEntity<Answer> updateAnswer(@PathVariable Long id, @RequestBody Answer answer) {
-        answer.setId(id);
-        return ResponseEntity.ok(answerService.save(answer));
+    public ResponseEntity<Answer> updateAnswer(@PathVariable Long id, @RequestBody AnswerDto answerDto) {
+        Answer updatedAnswer = answerService.updateAnswer(id, answerDto);
+        return ResponseEntity.ok(updatedAnswer);
     }
 
-    //주어진 id에 해당하는 답변 삭제
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deleteAnswer(@PathVariable Long id) {
-        answerService.deleteById(id);
+        answerService.deleteAnswer(id);
         return ResponseEntity.noContent().build();
     }
 }

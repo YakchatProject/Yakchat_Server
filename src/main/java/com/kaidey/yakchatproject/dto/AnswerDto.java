@@ -16,10 +16,12 @@ public class AnswerDto {
     private String content;
     private Long userId;
     private Long questionId;
-    private List<String> imagePaths;
+    private List<ImageDto> images; // 답변에 포함할 이미지 목록
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
     private Integer likeCount;
+
+
 
 //    작성 날짜: 답변 등록 시간 (LocalDateTime createdAt)
 //    수정 날짜: 답변 수정 시간 (LocalDateTime updatedAt)

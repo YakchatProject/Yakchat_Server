@@ -17,9 +17,9 @@ public class QuestionDto {
     private String title;
     private String content;
     private Boolean isAnonymous;
-    private String subject;
+    private Long subjectId; // 과목 ID
     private Long userId;
-    private List<String> imagePaths;
+    private List<ImageDto> images; // 답변에 포함할 이미지 목록
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
     private Integer likeCount;
