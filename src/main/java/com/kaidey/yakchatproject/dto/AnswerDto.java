@@ -23,5 +23,5 @@ public class AnswerDto {
 
 //    작성 날짜: 답변 등록 시간 (LocalDateTime createdAt)
 //    수정 날짜: 답변 수정 시간 (LocalDateTime updatedAt)
-//    추천 수: 답변 추천 카운트 (Integer upvotes)
+
 }

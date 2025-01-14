@@ -6,6 +6,7 @@ import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import java.time.LocalDateTime;
 
 @Entity
 @Getter
@@ -32,9 +33,18 @@ public class User {
     @Column(nullable = false)
     private Integer age;
 
+    @Column(nullable = false)
+    private Boolean isActive; // 회원 상태: 활성화 여부
+
+    @Column(nullable = false)
+    private LocalDateTime createdAt; // 등록 날짜
+
+    private LocalDateTime lastLoginAt; // 마지막 로그인
+
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Question> questions = new ArrayList<>();
 
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Answer> answers = new ArrayList<>();
+
 }
