@@ -37,44 +37,44 @@ public class QuestionService {
 
     // 질문 생성
     @Transactional
-    public Question createQuestion(QuestionDto questionDto) {
-        if (questionDto.getSubjectId() == null) {
-            throw new IllegalArgumentException("Subject ID must not be null");
+    public QuestionDto createQuestion(QuestionDto questionDto) {
+    if (questionDto.getSubjectId() == null) {
+        throw new IllegalArgumentException("Subject ID must not be null");
+    }
+
+    Subject subject = subjectRepository.findById(questionDto.getSubjectId())
+            .orElseThrow(() -> new EntityNotFoundException("Subject not found"));
+
+    User user = userRepository.findById(questionDto.getUserId())
+            .orElseThrow(() -> new EntityNotFoundException("User not found"));
+
+    Question question = new Question();
+    question.setTitle(questionDto.getTitle());
+    question.setContent(questionDto.getContent());
+    question.setIsAnonymous(questionDto.getIsAnonymous());
+    question.setSubject(subject);
+    question.setUser(user);
+
+    if (questionDto.getImages() != null && !questionDto.getImages().isEmpty()) {
+        if (question.getImages() == null) {
+            question.setImages(new ArrayList<>());
         }
 
-        Subject subject = subjectRepository.findById(questionDto.getSubjectId())
-                .orElseThrow(() -> new EntityNotFoundException("Subject not found"));
-
-        User user = userRepository.findById(questionDto.getUserId())
-                .orElseThrow(() -> new EntityNotFoundException("User not found"));
-
-        Question question = new Question();
-        question.setTitle(questionDto.getTitle());
-        question.setContent(questionDto.getContent());
-        question.setIsAnonymous(questionDto.getIsAnonymous()); // isAnonymous 설정
-        question.setSubject(subject);
-        question.setUser(user);
-
-        // 이미지가 제공된 경우 처리
-        if (questionDto.getImages() != null && !questionDto.getImages().isEmpty()) {
-            if (question.getImages() == null) {
-                question.setImages(new ArrayList<>());
+        for (ImageDto imageDto : questionDto.getImages()) {
+            if (imageDto.getData() == null || imageDto.getFileName() == null) {
+                throw new RuntimeException("Invalid image data");
             }
 
-            for (ImageDto imageDto : questionDto.getImages()) {
-                if (imageDto.getData() == null || imageDto.getFileName() == null) {
-                    throw new RuntimeException("Invalid image data");
-                }
-
-                Image image = new Image();
-                image.setData(imageDto.getData());
-                image.setFileName(imageDto.getFileName());
-                image.setQuestion(question);
-                question.getImages().add(image);
-            }
+            Image image = new Image();
+            image.setData(imageDto.getData());
+            image.setFileName(imageDto.getFileName());
+            image.setQuestion(question);
+            question.getImages().add(image);
         }
+    }
 
-        return questionRepository.save(question);
+    Question savedQuestion = questionRepository.save(question);
+    return convertToDto(savedQuestion);
     }
 
     // 특정 질문 조회
