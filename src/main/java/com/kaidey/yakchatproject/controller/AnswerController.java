@@ -1,32 +1,33 @@
 package com.kaidey.yakchatproject.controller;
 
 import com.kaidey.yakchatproject.dto.AnswerDto;
-import com.kaidey.yakchatproject.entity.Answer;
 import com.kaidey.yakchatproject.service.AnswerService;
+import com.kaidey.yakchatproject.util.ImageUtils;
+import com.kaidey.yakchatproject.security.JwtTokenProvider;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-import com.kaidey.yakchatproject.dto.ImageDto;
-import java.util.ArrayList;
-import com.kaidey.yakchatproject.util.ImageUtils;
-import java.util.List;
-import java.io.IOException;
 import org.springframework.web.multipart.MultipartFile;
-import com.kaidey.yakchatproject.security.JwtTokenProvider;
+
+import java.io.IOException;
+import java.util.List;
 
 @RestController
 @RequestMapping("/api/answers")
 public class AnswerController {
 
+    private final AnswerService answerService;
+    private final JwtTokenProvider jwtTokenProvider;
+
     @Autowired
-    private AnswerService answerService;
+    public AnswerController(AnswerService answerService, JwtTokenProvider jwtTokenProvider) {
+        this.answerService = answerService;
+        this.jwtTokenProvider = jwtTokenProvider;
+    }
 
-
-    @Autowired
-    private JwtTokenProvider jwtTokenProvider;
-
+    // 답변 생성
     @PostMapping
-    public ResponseEntity<Answer> createAnswer(
+    public ResponseEntity<AnswerDto> createAnswer(
             @RequestParam String content,
             @RequestParam Long questionId,
             @RequestParam(required = false) MultipartFile[] images,
@@ -35,8 +36,7 @@ public class AnswerController {
         AnswerDto answerDto = new AnswerDto();
         answerDto.setContent(content);
         answerDto.setQuestionId(questionId);
-        answerDto.setUserId(userId);
-        // Handle images if provided
+        // 이미지가 제공된 경우 처리
         if (images != null) {
             try {
                 answerDto.setImages(ImageUtils.processImages(images));
@@ -44,28 +44,49 @@ public class AnswerController {
                 return ResponseEntity.status(500).body(null);
             }
         }
-        Answer newAnswer = answerService.createAnswer(answerDto);
+        AnswerDto newAnswer = answerService.createAnswer(answerDto, userId);
         return ResponseEntity.ok(newAnswer);
     }
 
+    // 특정 답변 조회
     @GetMapping("/{id}")
-    public ResponseEntity<Answer> getAnswerById(@PathVariable Long id) {
-        Answer answer = answerService.getAnswerById(id);
+    public ResponseEntity<AnswerDto> getAnswerById(@PathVariable Long id) {
+        AnswerDto answer = answerService.getAnswerById(id);
         return ResponseEntity.ok(answer);
     }
 
+    // 모든 답변 조회
     @GetMapping
-    public ResponseEntity<List<Answer>> getAllAnswers() {
-        List<Answer> answers = answerService.getAllAnswers();
+    public ResponseEntity<List<AnswerDto>> getAllAnswers() {
+        List<AnswerDto> answers = answerService.getAllAnswers();
         return ResponseEntity.ok(answers);
     }
 
-    @PutMapping("/{id}")
-    public ResponseEntity<Answer> updateAnswer(@PathVariable Long id, @RequestBody AnswerDto answerDto) {
-        Answer updatedAnswer = answerService.updateAnswer(id, answerDto);
+    // 답변 업데이트
+    @PutMapping(value = "/{id}", consumes = {"multipart/form-data"})
+    public ResponseEntity<AnswerDto> updateAnswer(
+            @PathVariable Long id,
+            @RequestParam String content,
+            @RequestParam Long questionId,
+            @RequestParam(required = false) MultipartFile[] images,
+            @RequestHeader("Authorization") String token) {
+        Long userId = jwtTokenProvider.getUserIdFromToken(token.substring(7)); // "Bearer " 부분 제거
+        AnswerDto answerDto = new AnswerDto();
+        answerDto.setContent(content);
+        answerDto.setQuestionId(questionId);
+        // 이미지가 제공된 경우 처리
+        if (images != null) {
+            try {
+                answerDto.setImages(ImageUtils.processImages(images));
+            } catch (IOException e) {
+                return ResponseEntity.status(500).body(null);
+            }
+        }
+        AnswerDto updatedAnswer = answerService.updateAnswer(id, answerDto);
         return ResponseEntity.ok(updatedAnswer);
     }
 
+    // 답변 삭제
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deleteAnswer(@PathVariable Long id) {
         answerService.deleteAnswer(id);

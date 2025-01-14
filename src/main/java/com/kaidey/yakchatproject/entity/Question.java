@@ -1,5 +1,6 @@
 package com.kaidey.yakchatproject.entity;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -20,34 +21,38 @@ public class Question {
     private Long id;
 
     @Column(nullable = false)
-    private String title; // 질문 제목
+    private String title;
 
     @Column(nullable = false)
-    private String content; // 질문 내용
+    private String content;
 
-    @ManyToOne // 다대일 관계
+    @Column(nullable = false)
+    private Boolean isAnonymous; // Add this field
+
+    @ManyToOne
     @JoinColumn(name = "subject_id", nullable = false)
-    private Subject subject; // 연관된 과목
+    private Subject subject;
 
-    @ManyToOne // 작성자와의 관계
+    @ManyToOne
     @JoinColumn(name = "user_id", nullable = false)
-    private User user; // 질문 작성자
+    private User user;
 
     @Column(nullable = false, updatable = false)
-    private LocalDateTime createdAt = LocalDateTime.now(); // 등록 날짜
+    private LocalDateTime createdAt = LocalDateTime.now();
 
-    private LocalDateTime modifiedAt; // 수정일
-
-    @OneToMany(mappedBy = "question", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<Answer> answers = new ArrayList<>(); // 질문에 대한 답변들
+    private LocalDateTime modifiedAt;
 
     @OneToMany(mappedBy = "question", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<Image> images = new ArrayList<>(); // 질문에 관련된 이미지들
+    @JsonIgnore
+    private List<Answer> answers = new ArrayList<>();
 
-    private int likes = 0; // 좋아요 수
+    @OneToMany(mappedBy = "question", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.EAGER)
+    private List<Image> images = new ArrayList<>();
 
-    // 수정일 업데이트 메서드
+    private int likes = 0;
+
     public void updateModifiedAt() {
         this.modifiedAt = LocalDateTime.now();
     }
+
 }

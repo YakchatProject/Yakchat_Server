@@ -18,7 +18,7 @@ public class AnswerDto {
     private Long questionId;
     private List<ImageDto> images; // 답변에 포함할 이미지 목록
     private LocalDateTime createdAt;
-    private LocalDateTime updatedAt;
+    private LocalDateTime modifiedAt;
     private Integer likeCount;
 
 
