@@ -34,10 +34,10 @@ public class User {
     private Integer age;
 
     @Column(nullable = false)
-    private Boolean isActive; // 회원 상태: 활성화 여부
+    private Boolean isActive = true; // 회원 상태: 활성화 여부, 기본값은 true
 
-    @Column(nullable = false)
-    private LocalDateTime createdAt; // 등록 날짜
+    @Column(nullable = false, updatable = false)
+    private LocalDateTime createdAt = LocalDateTime.now(); // 등록 날짜, 기본값으로 현재 시간
 
     private LocalDateTime lastLoginAt; // 마지막 로그인
 
@@ -47,4 +47,8 @@ public class User {
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Answer> answers = new ArrayList<>();
 
+    // 마지막 로그인 시간을 업데이트하는 메서드
+    public void updateLastLogin() {
+        this.lastLoginAt = LocalDateTime.now();
+    }
 }

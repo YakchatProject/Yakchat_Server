@@ -1,31 +1,30 @@
 package com.kaidey.yakchatproject.entity;
 
 import jakarta.persistence.*;
-import lombok.*;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 
 @Entity
-@Table(name = "images")
 @Getter
 @Setter
 @NoArgsConstructor
-@AllArgsConstructor
 public class Image {
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(nullable = false)
-    private String url; // 이미지 URL
+    @Lob
+    private byte[] data; // 이미지 데이터
 
-    @ManyToOne
-    @JoinColumn(name = "user_id")
-    private User user; // 이미지 업로드한 사용자
+    private String fileName; // 파일 이름
 
-    @ManyToOne
-    @JoinColumn(name = "question_id") // 외래 키: 질문 ID
-    private Question question; // 관련 질문
+    @ManyToOne // 다대일 관계
+    @JoinColumn(name = "question_id", nullable = true)
+    private Question question; // 연관된 질문 (nullable)
 
-    @ManyToOne
-    @JoinColumn(name = "answer_id") // 외래 키: 답변 ID
-    private Answer answer; // 관련 답변
+    @ManyToOne // 다대일 관계
+    @JoinColumn(name = "answer_id", nullable = true)
+    private Answer answer; // 연관된 답변 (nullable)
 }
