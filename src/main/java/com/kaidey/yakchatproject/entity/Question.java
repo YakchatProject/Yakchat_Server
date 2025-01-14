@@ -54,5 +54,7 @@ public class Question {
     public void updateModifiedAt() {
         this.modifiedAt = LocalDateTime.now();
     }
-
+    public void incrementLikes() {
+        this.likes++;
+    }
 }

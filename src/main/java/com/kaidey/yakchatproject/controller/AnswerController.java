@@ -92,4 +92,24 @@ public class AnswerController {
         answerService.deleteAnswer(id);
         return ResponseEntity.noContent().build();
     }
+
+    @GetMapping("/{id}/likeCount")
+    public ResponseEntity<Long> getAnswerLikeCount(@PathVariable Long id) {
+        long likeCount = answerService.getAnswerLikeCount(id);
+        return ResponseEntity.ok(likeCount);
+    }
+
+    @PostMapping("/{id}/like")
+    public ResponseEntity<Void> likeAnswer(@PathVariable Long id, @RequestHeader("Authorization") String token) {
+        Long userId = jwtTokenProvider.getUserIdFromToken(token.substring(7)); // "Bearer " 부분 제거
+        answerService.likeAnswer(id, userId);
+        return ResponseEntity.ok().build();
+    }
+
+    @PostMapping("/{id}/unlike")
+    public ResponseEntity<Void> unlikeAnswer(@PathVariable Long id, @RequestHeader("Authorization") String token) {
+        Long userId = jwtTokenProvider.getUserIdFromToken(token.substring(7)); // "Bearer " 부분 제거
+        answerService.unlikeAnswer(id, userId);
+        return ResponseEntity.ok().build();
+    }
 }

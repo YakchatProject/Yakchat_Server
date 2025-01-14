@@ -31,12 +31,13 @@ public class QuestionController {
     }
 
 
-    //질문 생성
+    // 질문 생성
     @PostMapping
     public ResponseEntity<Question> createQuestion(
             @RequestParam String title,
             @RequestParam String content,
             @RequestParam Long subjectId,
+            @RequestParam Boolean isAnonymous, // isAnonymous 파라미터 추가
             @RequestParam(required = false) MultipartFile[] images,
             @RequestHeader("Authorization") String token) {
         Long userId = jwtTokenProvider.getUserIdFromToken(token.substring(7)); // "Bearer " 부분 제거
@@ -44,6 +45,7 @@ public class QuestionController {
         questionDto.setTitle(title);
         questionDto.setContent(content);
         questionDto.setSubjectId(subjectId);
+        questionDto.setIsAnonymous(isAnonymous); // isAnonymous 설정
         questionDto.setUserId(userId);
         // 이미지가 제공된 경우 처리
         if (images != null) {
@@ -72,13 +74,14 @@ public class QuestionController {
         return ResponseEntity.ok(questions);
     }
 
-    //질문 업데이트
+    // 질문 업데이트
     @PutMapping(value = "/{id}", consumes = {"multipart/form-data"})
     public ResponseEntity<QuestionDto> updateQuestion(
             @PathVariable Long id,
             @RequestParam String title,
             @RequestParam String content,
             @RequestParam Long subjectId,
+            @RequestParam Boolean isAnonymous, // isAnonymous 파라미터 추가
             @RequestParam(required = false) MultipartFile[] images,
             @RequestHeader("Authorization") String token) {
         Long userId = jwtTokenProvider.getUserIdFromToken(token.substring(7)); // "Bearer " 부분 제거
@@ -86,6 +89,7 @@ public class QuestionController {
         questionDto.setTitle(title);
         questionDto.setContent(content);
         questionDto.setSubjectId(subjectId);
+        questionDto.setIsAnonymous(isAnonymous); // isAnonymous 설정
         questionDto.setUserId(userId);
         // 이미지가 제공된 경우 처리
         if (images != null) {
@@ -112,5 +116,25 @@ public class QuestionController {
     public ResponseEntity<List<QuestionDto>> getQuestionsBySubjectId(@PathVariable Long subjectId) {
         List<QuestionDto> questions = questionService.getQuestionsBySubjectId(subjectId);
         return ResponseEntity.ok(questions);
+    }
+
+    @GetMapping("/{id}/likeCount")
+    public ResponseEntity<Long> getQuestionLikeCount(@PathVariable Long id) {
+        long likeCount = questionService.getQuestionLikeCount(id);
+        return ResponseEntity.ok(likeCount);
+    }
+
+    @PostMapping("/{id}/like")
+    public ResponseEntity<Void> likeQuestion(@PathVariable Long id, @RequestHeader("Authorization") String token) {
+        Long userId = jwtTokenProvider.getUserIdFromToken(token.substring(7)); // "Bearer " 부분 제거
+        questionService.likeQuestion(id, userId);
+        return ResponseEntity.ok().build();
+    }
+
+    @PostMapping("/{id}/unlike")
+    public ResponseEntity<Void> unlikeQuestion(@PathVariable Long id, @RequestHeader("Authorization") String token) {
+        Long userId = jwtTokenProvider.getUserIdFromToken(token.substring(7)); // "Bearer " 부분 제거
+        questionService.unlikeQuestion(id, userId);
+        return ResponseEntity.ok().build();
     }
 }

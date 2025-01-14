@@ -1,21 +1,19 @@
 package com.kaidey.yakchatproject.service;
 
 import com.kaidey.yakchatproject.dto.QuestionDto;
-import com.kaidey.yakchatproject.entity.Question;
-import com.kaidey.yakchatproject.entity.Subject;
+import com.kaidey.yakchatproject.entity.*;
+import com.kaidey.yakchatproject.repository.LikeRepository;
 import com.kaidey.yakchatproject.repository.QuestionRepository;
 import com.kaidey.yakchatproject.repository.SubjectRepository;
 import org.springframework.beans.factory.annotation.Autowired;
-import com.kaidey.yakchatproject.entity.Image;
 import com.kaidey.yakchatproject.dto.ImageDto;
+import com.kaidey.yakchatproject.repository.LikeRepository;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import com.kaidey.yakchatproject.entity.User;
 import com.kaidey.yakchatproject.repository.UserRepository;
 import com.kaidey.yakchatproject.exception.EntityNotFoundException;
 import org.springframework.web.bind.annotation.GetMapping;
-
 import java.util.List;
 import java.util.ArrayList;
 import java.util.stream.Collectors;
@@ -26,18 +24,22 @@ public class QuestionService {
     private final QuestionRepository questionRepository;
     private final SubjectRepository subjectRepository;
     private final UserRepository userRepository;
+    private final LikeRepository likeRepository;
 
     @Autowired
-    public QuestionService(QuestionRepository questionRepository, SubjectRepository subjectRepository, UserRepository userRepository) {
+    public QuestionService(QuestionRepository questionRepository, SubjectRepository subjectRepository,
+                           UserRepository userRepository, LikeRepository likeRepository) {
+
+
         this.questionRepository = questionRepository;
         this.subjectRepository = subjectRepository;
         this.userRepository = userRepository;
+        this.likeRepository = likeRepository;
     }
 
     // 질문 생성
     @Transactional
     public Question createQuestion(QuestionDto questionDto) {
-
         if (questionDto.getSubjectId() == null) {
             throw new IllegalArgumentException("Subject ID must not be null");
         }
@@ -51,9 +53,11 @@ public class QuestionService {
         Question question = new Question();
         question.setTitle(questionDto.getTitle());
         question.setContent(questionDto.getContent());
+        question.setIsAnonymous(questionDto.getIsAnonymous()); // isAnonymous 설정
         question.setSubject(subject);
         question.setUser(user);
-        // 이미지 리스트가 비어있지 않으면 이미지 추가
+
+        // 이미지가 제공된 경우 처리
         if (questionDto.getImages() != null && !questionDto.getImages().isEmpty()) {
             if (question.getImages() == null) {
                 question.setImages(new ArrayList<>());
@@ -99,21 +103,23 @@ public class QuestionService {
                 .collect(Collectors.toList());
     }
     // 질문 업데이트
+
     @Transactional
     public QuestionDto updateQuestion(Long id, QuestionDto questionDto) {
         Question question = questionRepository.findById(id)
                 .orElseThrow(() -> new EntityNotFoundException("Question not found"));
 
-        // Update question details
+        // 질문 세부사항 업데이트
         question.setTitle(questionDto.getTitle());
         question.setContent(questionDto.getContent());
+        question.setIsAnonymous(questionDto.getIsAnonymous()); // isAnonymous 설정
 
-        // Update subject
+        // 과목 업데이트
         Subject subject = subjectRepository.findById(questionDto.getSubjectId())
                 .orElseThrow(() -> new EntityNotFoundException("Subject not found"));
         question.setSubject(subject);
 
-        // Update images if provided
+        // 이미지가 제공된 경우 업데이트
         if (questionDto.getImages() != null && !questionDto.getImages().isEmpty()) {
             question.getImages().clear();
             for (ImageDto imageDto : questionDto.getImages()) {
@@ -134,6 +140,32 @@ public class QuestionService {
     public void deleteQuestion(Long id) {
         // 존재하지 않는 질문 ID일 경우 예외 발생
         questionRepository.deleteById(id);
+    }
+
+    @Transactional
+    public void likeQuestion(Long questionId, Long userId) {
+        Question question = questionRepository.findById(questionId)
+                .orElseThrow(() -> new EntityNotFoundException("Question not found"));
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new EntityNotFoundException("User not found"));
+        if (likeRepository.findByUserIdAndQuestionId(userId, questionId).isEmpty()) {
+            Like like = new Like();
+            like.setUser(user);
+            like.setQuestion(question);
+            likeRepository.save(like);
+        }
+    }
+
+    @Transactional
+    public void unlikeQuestion(Long questionId, Long userId) {
+        Like like = likeRepository.findByUserIdAndQuestionId(userId, questionId)
+                .orElseThrow(() -> new EntityNotFoundException("Like not found"));
+        likeRepository.delete(like);
+    }
+
+    @Transactional
+    public long getQuestionLikeCount(Long questionId) {
+        return likeRepository.countByQuestionId(questionId);
     }
 
     // Question 엔티티를 QuestionDto로 변환

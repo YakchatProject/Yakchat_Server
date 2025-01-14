@@ -2,12 +2,10 @@ package com.kaidey.yakchatproject.service;
 
 import com.kaidey.yakchatproject.dto.AnswerDto;
 import com.kaidey.yakchatproject.dto.ImageDto;
-import com.kaidey.yakchatproject.entity.Answer;
-import com.kaidey.yakchatproject.entity.Image;
-import com.kaidey.yakchatproject.entity.Question;
-import com.kaidey.yakchatproject.entity.User;
+import com.kaidey.yakchatproject.entity.*;
 import com.kaidey.yakchatproject.exception.EntityNotFoundException;
 import com.kaidey.yakchatproject.repository.AnswerRepository;
+import com.kaidey.yakchatproject.repository.LikeRepository;
 import com.kaidey.yakchatproject.repository.QuestionRepository;
 import com.kaidey.yakchatproject.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -24,12 +22,16 @@ public class AnswerService {
     private final AnswerRepository answerRepository;
     private final QuestionRepository questionRepository;
     private final UserRepository userRepository;
+    private final LikeRepository likeRepository;
 
     @Autowired
-    public AnswerService(AnswerRepository answerRepository, QuestionRepository questionRepository, UserRepository userRepository) {
+    public AnswerService(AnswerRepository answerRepository,
+                         QuestionRepository questionRepository,
+                         UserRepository userRepository,LikeRepository likeRepository) {
         this.answerRepository = answerRepository;
         this.questionRepository = questionRepository;
         this.userRepository = userRepository;
+        this.likeRepository = likeRepository;
     }
 
     // 답변 생성
@@ -126,6 +128,31 @@ public class AnswerService {
     @Transactional
     public void deleteAnswer(Long id) {
         answerRepository.deleteById(id);
+    }
+
+    @Transactional
+    public void likeAnswer(Long answerId, Long userId) {
+        Answer answer = answerRepository.findById(answerId)
+                .orElseThrow(() -> new EntityNotFoundException("Answer not found"));
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new EntityNotFoundException("User not found"));
+        if (likeRepository.findByUserIdAndAnswerId(userId, answerId).isEmpty()) {
+            Like like = new Like();
+            like.setUser(user); // Assuming User entity has a constructor with ID
+            like.setAnswer(answer);
+            likeRepository.save(like);
+        }
+    }
+
+    @Transactional
+    public void unlikeAnswer(Long answerId, Long userId) {
+        Like like = likeRepository.findByUserIdAndAnswerId(userId, answerId)
+                .orElseThrow(() -> new EntityNotFoundException("Like not found"));
+        likeRepository.delete(like);
+    }
+    @Transactional
+    public long getAnswerLikeCount(Long answerId) {
+        return likeRepository.countByAnswerId(answerId);
     }
 
     // Answer 엔티티를 AnswerDto로 변환
