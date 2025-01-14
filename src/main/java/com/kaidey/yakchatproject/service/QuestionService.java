@@ -93,12 +93,26 @@ public class QuestionService {
     public Question updateQuestion(Long id, QuestionDto questionDto) {
         Question question = getQuestionById(id);
 
-        // 과목 확인 및 설정
+        // Update question details
+        question.setTitle(questionDto.getTitle());
+        question.setContent(questionDto.getContent());
+
+        // Update subject
         Subject subject = subjectRepository.findById(questionDto.getSubjectId())
                 .orElseThrow(() -> new EntityNotFoundException("Subject not found"));
+        question.setSubject(subject);
 
-        question.setContent(questionDto.getContent());
-        question.setSubject(subject); // 과목 객체 설정
+        // Update images if provided
+        if (questionDto.getImages() != null && !questionDto.getImages().isEmpty()) {
+            question.getImages().clear();
+            for (ImageDto imageDto : questionDto.getImages()) {
+                Image image = new Image();
+                image.setData(imageDto.getData());
+                image.setFileName(imageDto.getFileName());
+                image.setQuestion(question);
+                question.getImages().add(image);
+            }
+        }
 
         return questionRepository.save(question);
     }

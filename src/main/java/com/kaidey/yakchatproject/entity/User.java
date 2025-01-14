@@ -1,5 +1,6 @@
 package com.kaidey.yakchatproject.entity;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -24,10 +25,10 @@ public class User implements UserDetails {
     private Long id;
 
     @Column(nullable = false, unique = true, length = 50)
-    private String username; // 아이디
+    private String username;
 
     @Column(nullable = false)
-    private String password; // 비밀번호
+    private String password;
 
     @Column(nullable = false)
     private String school;
@@ -39,31 +40,30 @@ public class User implements UserDetails {
     private Integer age;
 
     @Column(nullable = false)
-    private Boolean isActive = true; // 회원 상태
+    private Boolean isActive = true;
 
     @Column(nullable = false, updatable = false)
-    private LocalDateTime createdAt = LocalDateTime.now(); // 등록 날짜
+    private LocalDateTime createdAt = LocalDateTime.now();
 
-    private LocalDateTime lastLoginAt; // 마지막 로그인
+    private LocalDateTime lastLoginAt;
 
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
+    @JsonIgnore
     private List<Question> questions = new ArrayList<>();
 
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
+    @JsonIgnore
     private List<Answer> answers = new ArrayList<>();
 
-    // 권한 목록
     @ElementCollection(fetch = FetchType.EAGER)
     @CollectionTable(name = "user_roles", joinColumns = @JoinColumn(name = "user_id"))
     @Enumerated(EnumType.STRING)
     @Column(name = "role")
     private Set<RoleType> roles;
 
-    // 권한 목록
     @ElementCollection(fetch = FetchType.EAGER)
     private List<String> authorities = new ArrayList<>();
 
-    // UserDetails 인터페이스의 메서드 구현
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
         return authorities.stream()
@@ -83,25 +83,24 @@ public class User implements UserDetails {
 
     @Override
     public boolean isAccountNonExpired() {
-        return true; // 계정 만료 여부
+        return true;
     }
 
     @Override
     public boolean isAccountNonLocked() {
-        return true; // 계정 잠금 여부
+        return true;
     }
 
     @Override
     public boolean isCredentialsNonExpired() {
-        return true; // 자격 증명 만료 여부
+        return true;
     }
 
     @Override
     public boolean isEnabled() {
-        return isActive; // 계정 활성화 여부
+        return isActive;
     }
 
-    // 마지막 로그인 시간을 업데이트하는 메서드
     public void updateLastLogin() {
         this.lastLoginAt = LocalDateTime.now();
     }

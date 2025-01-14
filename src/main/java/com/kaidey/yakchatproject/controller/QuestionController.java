@@ -66,8 +66,28 @@ public class QuestionController {
         return ResponseEntity.ok(questions);
     }
 
-    @PutMapping("/{id}")
-    public ResponseEntity<Question> updateQuestion(@PathVariable Long id, @RequestBody QuestionDto questionDto) {
+    @PutMapping(value = "/{id}", consumes = {"multipart/form-data"})
+    public ResponseEntity<Question> updateQuestion(
+            @PathVariable Long id,
+            @RequestParam String title,
+            @RequestParam String content,
+            @RequestParam Long subjectId,
+            @RequestParam(required = false) MultipartFile[] images,
+            @RequestHeader("Authorization") String token) {
+        Long userId = jwtTokenProvider.getUserIdFromToken(token.substring(7)); // "Bearer " 부분 제거
+        QuestionDto questionDto = new QuestionDto();
+        questionDto.setTitle(title);
+        questionDto.setContent(content);
+        questionDto.setSubjectId(subjectId);
+        questionDto.setUserId(userId);
+        // 이미지가 제공된 경우 처리
+        if (images != null) {
+            try {
+                questionDto.setImages(ImageUtils.processImages(images));
+            } catch (IOException e) {
+                return ResponseEntity.status(500).body(null);
+            }
+        }
         Question updatedQuestion = questionService.updateQuestion(id, questionDto);
         return ResponseEntity.ok(updatedQuestion);
     }
