@@ -7,9 +7,12 @@ import com.kaidey.yakchatproject.security.JwtTokenProvider;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import com.kaidey.yakchatproject.entity.enums.RoleType;
 
+import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 
 @Service
 public class UserService {
@@ -32,12 +35,16 @@ public class UserService {
             user.setSchool(userDto.getSchool());
             user.setGrade(userDto.getGrade());
             user.setAge(userDto.getAge());
+
+            Set<RoleType> roles = new HashSet<>();
+            roles.add(RoleType.ROLE_USER); // 기본적으로 USER 역할 부여
+            user.setRoles(roles);
+
             return userRepository.save(user);
         } catch (Exception e) {
             throw new RuntimeException("Error registering user: " + e.getMessage());
         }
     }
-
     // 사용자 로그인
     public String loginUser(UserDto userDto) {
         try {

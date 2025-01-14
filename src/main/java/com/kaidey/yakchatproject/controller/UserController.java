@@ -24,8 +24,12 @@ public class UserController {
 
     @PostMapping("/login")
     public ResponseEntity<String> loginUser(@RequestBody UserDto userDto) {
-        String token = userService.loginUser(userDto);
-        return ResponseEntity.ok(token);
+        try {
+            String token = userService.loginUser(userDto);
+            return ResponseEntity.ok(token);
+        } catch (RuntimeException e) {
+            return ResponseEntity.status(403).body(e.getMessage());
+        }
     }
 
     @GetMapping("/{id}")
