@@ -46,7 +46,7 @@ public class SecurityConfig {
                 .cors().and() // CORS 설정
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS)) // Stateless 세션
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/api/users/register", "/api/users/login").permitAll() // 인증 없이 접근 가능
+                        .requestMatchers("/api/users/register", "/api/users/login","https://endlessly-cuddly-salmon.ngrok-free.app").permitAll() // 인증 없이 접근 가능
                         .anyRequest().authenticated() // 나머지는 인증 필요
                 );
 

@@ -25,48 +25,72 @@ public class UserService {
 
     // 사용자 등록
     public User registerUser(UserDto userDto) {
-        User user = new User();
-        user.setUsername(userDto.getUsername());
-        user.setPassword(passwordEncoder.encode(userDto.getPassword())); // 비밀번호 암호화
-        user.setSchool(userDto.getSchool());
-        user.setGrade(userDto.getGrade());
-        user.setAge(userDto.getAge());
-        return userRepository.save(user);
+        try {
+            User user = new User();
+            user.setUsername(userDto.getUsername());
+            user.setPassword(passwordEncoder.encode(userDto.getPassword())); // 비밀번호 암호화
+            user.setSchool(userDto.getSchool());
+            user.setGrade(userDto.getGrade());
+            user.setAge(userDto.getAge());
+            return userRepository.save(user);
+        } catch (Exception e) {
+            throw new RuntimeException("Error registering user: " + e.getMessage());
+        }
     }
 
     // 사용자 로그인
     public String loginUser(UserDto userDto) {
-        Optional<User> userOptional = userRepository.findByUsername(userDto.getUsername());
-        if (userOptional.isPresent() && passwordEncoder.matches(userDto.getPassword(), userOptional.get().getPassword())) {
-            return jwtTokenProvider.generateToken(userDto.getUsername());
-        } else {
-            throw new RuntimeException("Invalid username or password"); // 예외 처리
+        try {
+            Optional<User> userOptional = userRepository.findByUsername(userDto.getUsername());
+            if (userOptional.isPresent() && passwordEncoder.matches(userDto.getPassword(), userOptional.get().getPassword())) {
+                return jwtTokenProvider.generateToken(userDto.getUsername());
+            } else {
+                throw new RuntimeException("Invalid username or password");
+            }
+        } catch (Exception e) {
+            throw new RuntimeException("Error logging in user: " + e.getMessage());
         }
     }
 
     // 특정 사용자 조회
     public User getUserById(Long id) {
-        return userRepository.findById(id).orElseThrow(() -> new RuntimeException("User not found"));
+        try {
+            return userRepository.findById(id).orElseThrow(() -> new RuntimeException("User not found"));
+        } catch (Exception e) {
+            throw new RuntimeException("Error retrieving user: " + e.getMessage());
+        }
     }
 
     // 모든 사용자 조회
     public List<User> getAllUsers() {
-        return userRepository.findAll();
+        try {
+            return userRepository.findAll();
+        } catch (Exception e) {
+            throw new RuntimeException("Error retrieving all users: " + e.getMessage());
+        }
     }
 
     // 사용자 정보 업데이트
     public User updateUser(Long id, UserDto userDto) {
-        User user = getUserById(id);
-        user.setUsername(userDto.getUsername());
-        user.setPassword(passwordEncoder.encode(userDto.getPassword())); // 비밀번호 암호화
-        user.setSchool(userDto.getSchool());
-        user.setGrade(userDto.getGrade());
-        user.setAge(userDto.getAge());
-        return userRepository.save(user);
+        try {
+            User user = getUserById(id);
+            user.setUsername(userDto.getUsername());
+            user.setPassword(passwordEncoder.encode(userDto.getPassword())); // 비밀번호 암호화
+            user.setSchool(userDto.getSchool());
+            user.setGrade(userDto.getGrade());
+            user.setAge(userDto.getAge());
+            return userRepository.save(user);
+        } catch (Exception e) {
+            throw new RuntimeException("Error updating user: " + e.getMessage());
+        }
     }
 
     // 사용자 삭제
     public void deleteUser(Long id) {
-        userRepository.deleteById(id);
+        try {
+            userRepository.deleteById(id);
+        } catch (Exception e) {
+            throw new RuntimeException("Error deleting user: " + e.getMessage());
+        }
     }
 }
