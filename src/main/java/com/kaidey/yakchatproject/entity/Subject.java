@@ -1,5 +1,6 @@
 package com.kaidey.yakchatproject.entity;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -18,9 +19,13 @@ public class Subject {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(nullable = false, unique = true)
-    private String name; // 과목명
+    @Column(nullable = false)
+    private String name;
 
     @OneToMany(mappedBy = "subject", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<Question> questions = new ArrayList<>(); // 과목에 관련된 질문들
+    @JsonIgnore
+    private List<Question> questions = new ArrayList<>();
+
+//    @OneToMany(mappedBy = "subject", cascade = CascadeType.ALL, orphanRemoval = true)
+//    private List<Image> images = new ArrayList<>();
 }

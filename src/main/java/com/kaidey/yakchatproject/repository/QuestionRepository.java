@@ -8,5 +8,5 @@ import java.util.List;
 
 @Repository
 public interface QuestionRepository extends JpaRepository<Question, Long> {
-    List<Question> findBySubjectId(Long subjectId); // 과목 ID로 질문 조회
+    List<Question> findBySubjectId(Long subjectId); // Find questions by subject ID
 }

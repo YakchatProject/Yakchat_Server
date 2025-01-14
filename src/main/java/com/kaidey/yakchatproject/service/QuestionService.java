@@ -9,93 +9,104 @@ import org.springframework.beans.factory.annotation.Autowired;
 import com.kaidey.yakchatproject.entity.Image;
 import com.kaidey.yakchatproject.dto.ImageDto;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+import com.kaidey.yakchatproject.entity.User;
+import com.kaidey.yakchatproject.repository.UserRepository;
+import com.kaidey.yakchatproject.exception.EntityNotFoundException;
 
 import java.util.List;
+import java.util.ArrayList;
 
 @Service
 public class QuestionService {
 
-    @Autowired
-    private QuestionRepository questionRepository;
+    private final QuestionRepository questionRepository;
+    private final SubjectRepository subjectRepository;
+    private final UserRepository userRepository;
 
     @Autowired
-    private SubjectRepository subjectRepository; // SubjectRepository 추가
+    public QuestionService(QuestionRepository questionRepository, SubjectRepository subjectRepository, UserRepository userRepository) {
+        this.questionRepository = questionRepository;
+        this.subjectRepository = subjectRepository;
+        this.userRepository = userRepository;
+    }
 
     // 질문 생성
+    @Transactional
     public Question createQuestion(QuestionDto questionDto) {
-        try {
-            Question question = new Question();
-            question.setContent(questionDto.getContent());
 
-            // 과목 설정
-            question.setSubject(subjectRepository.findById(questionDto.getSubjectId())
-                    .orElseThrow(() -> new RuntimeException("Subject not found")));
+        if (questionDto.getSubjectId() == null) {
+            throw new IllegalArgumentException("Subject ID must not be null");
+        }
 
-            // 이미지 설정
-            if (questionDto.getImages() != null) {
-                for (ImageDto imageDto : questionDto.getImages()) {
-                    Image image = new Image();
-                    image.setData(imageDto.getData());
-                    image.setFileName(imageDto.getFileName());
-                    image.setQuestion(question); // 질문과 연관
-                    question.getImages().add(image);
-                }
+        Subject subject = subjectRepository.findById(questionDto.getSubjectId())
+                .orElseThrow(() -> new EntityNotFoundException("Subject not found"));
+
+        User user = userRepository.findById(questionDto.getUserId())
+                .orElseThrow(() -> new EntityNotFoundException("User not found"));
+
+        Question question = new Question();
+        question.setTitle(questionDto.getTitle());
+        question.setContent(questionDto.getContent());
+        question.setSubject(subject);
+        question.setUser(user);
+        // 이미지 리스트가 비어있지 않으면 이미지 추가
+        if (questionDto.getImages() != null && !questionDto.getImages().isEmpty()) {
+            if (question.getImages() == null) {
+                question.setImages(new ArrayList<>());
             }
 
-            return questionRepository.save(question); // 질문 저장
-        } catch (Exception e) {
-            throw new RuntimeException("Error creating question: " + e.getMessage());
+            for (ImageDto imageDto : questionDto.getImages()) {
+                if (imageDto.getData() == null || imageDto.getFileName() == null) {
+                    throw new RuntimeException("Invalid image data");
+                }
+
+                Image image = new Image();
+                image.setData(imageDto.getData());
+                image.setFileName(imageDto.getFileName());
+                image.setQuestion(question);
+                question.getImages().add(image);
+            }
         }
+
+        return questionRepository.save(question);
     }
 
     // 특정 질문 조회
     public Question getQuestionById(Long id) {
-        try {
-            return questionRepository.findById(id).orElseThrow(() -> new RuntimeException("Question not found"));
-        } catch (Exception e) {
-            throw new RuntimeException("Error retrieving question: " + e.getMessage());
-        }
+        return questionRepository.findById(id)
+                .orElseThrow(() -> new EntityNotFoundException("Question not found"));
     }
 
     // 모든 질문 조회
     public List<Question> getAllQuestions() {
-        try {
-            return questionRepository.findAll();
-        } catch (Exception e) {
-            throw new RuntimeException("Error retrieving all questions: " + e.getMessage());
-        }
+        return questionRepository.findAll();
     }
 
     // 과목 ID로 질문 조회
     public List<Question> getQuestionsBySubjectId(Long subjectId) {
-        try {
-            return questionRepository.findBySubjectId(subjectId);
-        } catch (Exception e) {
-            throw new RuntimeException("Error retrieving questions by subject ID: " + e.getMessage());
-        }
+        return questionRepository.findBySubjectId(subjectId);
     }
 
     // 질문 업데이트
+    @Transactional
     public Question updateQuestion(Long id, QuestionDto questionDto) {
-        try {
-            Question question = getQuestionById(id);
-            Subject subject = subjectRepository.findById(questionDto.getSubjectId())
-                    .orElseThrow(() -> new RuntimeException("Subject not found")); // 과목 객체 조회
+        Question question = getQuestionById(id);
 
-            question.setContent(questionDto.getContent());
-            question.setSubject(subject); // 과목 객체 설정
-            return questionRepository.save(question);
-        } catch (Exception e) {
-            throw new RuntimeException("Error updating question: " + e.getMessage());
-        }
+        // 과목 확인 및 설정
+        Subject subject = subjectRepository.findById(questionDto.getSubjectId())
+                .orElseThrow(() -> new EntityNotFoundException("Subject not found"));
+
+        question.setContent(questionDto.getContent());
+        question.setSubject(subject); // 과목 객체 설정
+
+        return questionRepository.save(question);
     }
 
     // 질문 삭제
+    @Transactional
     public void deleteQuestion(Long id) {
-        try {
-            questionRepository.deleteById(id);
-        } catch (Exception e) {
-            throw new RuntimeException("Error deleting question: " + e.getMessage());
-        }
+        // 존재하지 않는 질문 ID일 경우 예외 발생
+        questionRepository.deleteById(id);
     }
 }

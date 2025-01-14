@@ -23,14 +23,14 @@ public class SubjectController {
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<Subject> getSubjectById(@PathVariable Long id) {
-        Subject subject = subjectService.getSubjectById(id);
+    public ResponseEntity<SubjectDto> getSubjectById(@PathVariable Long id) {
+        SubjectDto subject = subjectService.getSubjectById(id);
         return ResponseEntity.ok(subject);
     }
 
     @GetMapping
-    public ResponseEntity<List<Subject>> getAllSubjects() {
-        List<Subject> subjects = subjectService.getAllSubjects();
+    public ResponseEntity<List<SubjectDto>> getAllSubjects() {
+        List<SubjectDto> subjects = subjectService.getAllSubjects();
         return ResponseEntity.ok(subjects);
     }
 

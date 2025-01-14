@@ -50,7 +50,7 @@ public class UserService {
         try {
             Optional<User> userOptional = userRepository.findByUsername(userDto.getUsername());
             if (userOptional.isPresent() && passwordEncoder.matches(userDto.getPassword(), userOptional.get().getPassword())) {
-                return jwtTokenProvider.generateToken(userDto.getUsername());
+                return jwtTokenProvider.generateToken(userDto.getUsername(), userOptional.get().getId());
             } else {
                 throw new RuntimeException("Invalid username or password");
             }
@@ -58,6 +58,7 @@ public class UserService {
             throw new RuntimeException("Error logging in user: " + e.getMessage());
         }
     }
+
 
     // 특정 사용자 조회
     public User getUserById(Long id) {
