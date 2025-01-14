@@ -14,7 +14,9 @@ public class AnswerDto {
 
     private Long id;
     private String content;
+    private Boolean isAnonymous; // 익명 여부 추가
     private Long userId;
+    private String userName;
     private Long questionId;
     private List<ImageDto> images; // 답변에 포함할 이미지 목록
     private LocalDateTime createdAt;

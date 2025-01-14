@@ -21,6 +21,9 @@ public class Answer {
     @Column(nullable = false)
     private String content; // 답변 내용
 
+    @Column(nullable = false)
+    private Boolean isAnonymous; // 익명 여부 추가
+
     @ManyToOne // 다대일 관계
     @JoinColumn(name = "question_id", nullable = false)
     private Question question; // 연관된 질문

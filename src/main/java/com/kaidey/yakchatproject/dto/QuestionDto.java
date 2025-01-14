@@ -19,6 +19,7 @@ public class QuestionDto {
     private Boolean isAnonymous;
     private Long subjectId; // 과목 ID
     private Long userId;
+    private String userName;
     private List<ImageDto> images; // 답변에 포함할 이미지 목록
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;

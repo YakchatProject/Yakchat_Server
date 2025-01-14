@@ -29,8 +29,6 @@ public class QuestionService {
     @Autowired
     public QuestionService(QuestionRepository questionRepository, SubjectRepository subjectRepository,
                            UserRepository userRepository, LikeRepository likeRepository) {
-
-
         this.questionRepository = questionRepository;
         this.subjectRepository = subjectRepository;
         this.userRepository = userRepository;
@@ -102,8 +100,8 @@ public class QuestionService {
                 .map(this::convertToDto)
                 .collect(Collectors.toList());
     }
-    // 질문 업데이트
 
+    // 질문 업데이트
     @Transactional
     public QuestionDto updateQuestion(Long id, QuestionDto questionDto) {
         Question question = questionRepository.findById(id)
@@ -177,6 +175,7 @@ public class QuestionService {
         questionDto.setIsAnonymous(question.getIsAnonymous());
         questionDto.setSubjectId(question.getSubject().getId());
         questionDto.setUserId(question.getUser().getId());
+        questionDto.setUserName(question.getIsAnonymous() ? "" : question.getUser().getUsername()); // 익명 여부에 따라 사용자 이름 설정
         questionDto.setCreatedAt(question.getCreatedAt());
         questionDto.setUpdatedAt(question.getModifiedAt());
         questionDto.setLikeCount(question.getLikes());
@@ -189,6 +188,4 @@ public class QuestionService {
                 }).collect(Collectors.toList()));
         return questionDto;
     }
-
-
 }

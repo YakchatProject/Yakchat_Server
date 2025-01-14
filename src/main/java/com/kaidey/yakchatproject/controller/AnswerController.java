@@ -30,12 +30,14 @@ public class AnswerController {
     public ResponseEntity<AnswerDto> createAnswer(
             @RequestParam String content,
             @RequestParam Long questionId,
+            @RequestParam Boolean isAnonymous, // 익명 여부 추가
             @RequestParam(required = false) MultipartFile[] images,
             @RequestHeader("Authorization") String token) {
         Long userId = jwtTokenProvider.getUserIdFromToken(token.substring(7)); // "Bearer " 부분 제거
         AnswerDto answerDto = new AnswerDto();
         answerDto.setContent(content);
         answerDto.setQuestionId(questionId);
+        answerDto.setIsAnonymous(isAnonymous); // 익명 여부 설정
         // 이미지가 제공된 경우 처리
         if (images != null) {
             try {
@@ -68,12 +70,14 @@ public class AnswerController {
             @PathVariable Long id,
             @RequestParam String content,
             @RequestParam Long questionId,
+            @RequestParam Boolean isAnonymous, // 익명 여부 추가
             @RequestParam(required = false) MultipartFile[] images,
             @RequestHeader("Authorization") String token) {
         Long userId = jwtTokenProvider.getUserIdFromToken(token.substring(7)); // "Bearer " 부분 제거
         AnswerDto answerDto = new AnswerDto();
         answerDto.setContent(content);
         answerDto.setQuestionId(questionId);
+        answerDto.setIsAnonymous(isAnonymous); // 익명 여부 설정
         // 이미지가 제공된 경우 처리
         if (images != null) {
             try {

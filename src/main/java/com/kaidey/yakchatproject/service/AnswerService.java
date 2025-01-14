@@ -27,7 +27,7 @@ public class AnswerService {
     @Autowired
     public AnswerService(AnswerRepository answerRepository,
                          QuestionRepository questionRepository,
-                         UserRepository userRepository,LikeRepository likeRepository) {
+                         UserRepository userRepository, LikeRepository likeRepository) {
         this.answerRepository = answerRepository;
         this.questionRepository = questionRepository;
         this.userRepository = userRepository;
@@ -45,6 +45,7 @@ public class AnswerService {
 
         Answer answer = new Answer();
         answer.setContent(answerDto.getContent());
+        answer.setIsAnonymous(answerDto.getIsAnonymous()); // 익명 여부 설정
         answer.setQuestion(question);
         answer.setUser(user);
 
@@ -96,6 +97,7 @@ public class AnswerService {
 
             // Update answer details
             answer.setContent(answerDto.getContent());
+            answer.setIsAnonymous(answerDto.getIsAnonymous()); // 익명 여부 설정
 
             // Update question
             Question question = questionRepository.findById(answerDto.getQuestionId())
@@ -150,6 +152,7 @@ public class AnswerService {
                 .orElseThrow(() -> new EntityNotFoundException("Like not found"));
         likeRepository.delete(like);
     }
+
     @Transactional
     public long getAnswerLikeCount(Long answerId) {
         return likeRepository.countByAnswerId(answerId);
@@ -160,7 +163,9 @@ public class AnswerService {
         AnswerDto answerDto = new AnswerDto();
         answerDto.setId(answer.getId());
         answerDto.setContent(answer.getContent());
+        answerDto.setIsAnonymous(answer.getIsAnonymous()); // 익명 여부 설정
         answerDto.setUserId(answer.getUser().getId());
+        answerDto.setUserName(answer.getIsAnonymous() ? "" : answer.getUser().getUsername()); // 익명 여부에 따라 사용자 이름 설정
         answerDto.setQuestionId(answer.getQuestion().getId());
         answerDto.setCreatedAt(answer.getCreatedAt());
         answerDto.setModifiedAt(answer.getModifiedAt());
