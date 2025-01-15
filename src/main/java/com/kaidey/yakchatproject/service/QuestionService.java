@@ -140,6 +140,7 @@ public class QuestionService {
         questionRepository.deleteById(id);
     }
 
+    // 질문 좋아요
     @Transactional
     public void likeQuestion(Long questionId, Long userId) {
         Question question = questionRepository.findById(questionId)
@@ -154,6 +155,7 @@ public class QuestionService {
         }
     }
 
+    // 질문 좋아요 취소
     @Transactional
     public void unlikeQuestion(Long questionId, Long userId) {
         Like like = likeRepository.findByUserIdAndQuestionId(userId, questionId)
@@ -161,9 +163,21 @@ public class QuestionService {
         likeRepository.delete(like);
     }
 
+    // 질문 좋아요 수 조회
     @Transactional
     public long getQuestionLikeCount(Long questionId) {
         return likeRepository.countByQuestionId(questionId);
+    }
+
+    // 질문 검색
+    @Transactional
+    public List<QuestionDto> searchQuestions(String keyword) {
+        if (keyword.length() > 100) {
+            throw new IllegalArgumentException("Keyword length must be 100 characters or less");
+        }
+        return questionRepository.findByTitleContainingOrContentContaining(keyword, keyword).stream()
+                .map(this::convertToDto)
+                .collect(Collectors.toList());
     }
 
     // Question 엔티티를 QuestionDto로 변환

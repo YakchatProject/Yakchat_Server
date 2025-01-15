@@ -9,4 +9,6 @@ import java.util.List;
 @Repository
 public interface QuestionRepository extends JpaRepository<Question, Long> {
     List<Question> findBySubjectId(Long subjectId); // Find questions by subject ID
+    List<Question> findByTitleContainingOrContentContaining(String title, String content);
+
 }
