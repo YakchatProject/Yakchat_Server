@@ -1,6 +1,6 @@
+// User.java
 package com.kaidey.yakchatproject.entity;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -47,12 +47,13 @@ public class User implements UserDetails {
 
     private LocalDateTime lastLoginAt;
 
+    @Lob
+    private byte[] profileImage; // Add profileImage field
+
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
-    @JsonIgnore
     private List<Question> questions = new ArrayList<>();
 
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
-    @JsonIgnore
     private List<Answer> answers = new ArrayList<>();
 
     @ElementCollection(fetch = FetchType.EAGER)
