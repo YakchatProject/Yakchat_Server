@@ -16,12 +16,6 @@ public class SubjectController {
     @Autowired
     private SubjectService subjectService;
 
-    @PostMapping
-    public ResponseEntity<Subject> createSubject(@RequestBody SubjectDto subjectDto) {
-        Subject newSubject = subjectService.createSubject(subjectDto);
-        return ResponseEntity.ok(newSubject);
-    }
-
     @GetMapping("/{id}")
     public ResponseEntity<SubjectDto> getSubjectById(@PathVariable Long id) {
         SubjectDto subject = subjectService.getSubjectById(id);
@@ -33,6 +27,13 @@ public class SubjectController {
         List<SubjectDto> subjects = subjectService.getAllSubjects();
         return ResponseEntity.ok(subjects);
     }
+
+    @PostMapping
+    public ResponseEntity<Subject> createSubject(@RequestBody SubjectDto subjectDto) {
+        Subject newSubject = subjectService.createSubject(subjectDto);
+        return ResponseEntity.ok(newSubject);
+    }
+
 
     @PutMapping("/{id}")
     public ResponseEntity<Subject> updateSubject(@PathVariable Long id, @RequestBody SubjectDto subjectDto) {

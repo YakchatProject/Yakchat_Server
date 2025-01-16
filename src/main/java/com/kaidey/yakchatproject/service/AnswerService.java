@@ -36,40 +36,40 @@ public class AnswerService {
 
     // 답변 생성
     @Transactional
-public AnswerDto createAnswer(AnswerDto answerDto, Long userId) {
-    Question question = questionRepository.findById(answerDto.getQuestionId())
-            .orElseThrow(() -> new EntityNotFoundException("Question not found"));
+    public AnswerDto createAnswer(AnswerDto answerDto, Long userId) {
+        Question question = questionRepository.findById(answerDto.getQuestionId())
+                .orElseThrow(() -> new EntityNotFoundException("Question not found"));
 
-    User user = userRepository.findById(userId)
-            .orElseThrow(() -> new EntityNotFoundException("User not found"));
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new EntityNotFoundException("User not found"));
 
-    Answer answer = new Answer();
-    answer.setContent(answerDto.getContent());
-    answer.setIsAnonymous(answerDto.getIsAnonymous());
-    answer.setQuestion(question);
-    answer.setUser(user);
+        Answer answer = new Answer();
+        answer.setContent(answerDto.getContent());
+        answer.setIsAnonymous(answerDto.getIsAnonymous());
+        answer.setQuestion(question);
+        answer.setUser(user);
 
-    if (answerDto.getImages() != null && !answerDto.getImages().isEmpty()) {
-        if (answer.getImages() == null) {
-            answer.setImages(new ArrayList<>());
-        }
-
-        for (ImageDto imageDto : answerDto.getImages()) {
-            if (imageDto.getData() == null || imageDto.getFileName() == null) {
-                throw new RuntimeException("Invalid image data");
+        if (answerDto.getImages() != null && !answerDto.getImages().isEmpty()) {
+            if (answer.getImages() == null) {
+                answer.setImages(new ArrayList<>());
             }
 
-            Image image = new Image();
-            image.setData(imageDto.getData());
-            image.setFileName(imageDto.getFileName());
-            image.setAnswer(answer);
-            answer.getImages().add(image);
-        }
-    }
+            for (ImageDto imageDto : answerDto.getImages()) {
+                if (imageDto.getData() == null || imageDto.getFileName() == null) {
+                    throw new RuntimeException("Invalid image data");
+                }
 
-    Answer savedAnswer = answerRepository.save(answer);
-    return convertToDto(savedAnswer);
-}
+                Image image = new Image();
+                image.setData(imageDto.getData());
+                image.setFileName(imageDto.getFileName());
+                image.setAnswer(answer);
+                answer.getImages().add(image);
+            }
+        }
+
+        Answer savedAnswer = answerRepository.save(answer);
+        return convertToDto(savedAnswer);
+    }
 
     // 특정 답변 조회
     @Transactional

@@ -53,6 +53,10 @@ public class SecurityConfig {
                         .sessionCreationPolicy(SessionCreationPolicy.STATELESS)) // Stateless 세션
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/api/auth/login","/api/auth/register").permitAll()  // 인증 없이 접근 가능
+                        .requestMatchers("/api/answers/**").authenticated()
+                        .requestMatchers("/api/questions/**").authenticated()
+                        .requestMatchers("/api/profile/**").authenticated()
+                        .requestMatchers("/api/auth/verify-token").authenticated() // 토큰 검증은 인증 필요
                         .requestMatchers("/api/admin/**").hasRole("ADMIN") // ADMIN 권한 필요
                         .anyRequest().authenticated() // 나머지는 인증 필요
                 );

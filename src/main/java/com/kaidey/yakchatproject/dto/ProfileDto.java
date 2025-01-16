@@ -9,6 +9,6 @@ import lombok.Setter;
 @NoArgsConstructor
 public class ProfileDto {
     private String school;
-    private Integer grade;
+    private String grade;
     private byte[] profileImage; // 프로필 이미지 추가
 }

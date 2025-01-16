@@ -34,7 +34,7 @@ public class User implements UserDetails {
     private String school;
 
     @Column(nullable = false)
-    private Integer grade;
+    private String grade;
 
     @Column(nullable = false)
     private Integer age;
