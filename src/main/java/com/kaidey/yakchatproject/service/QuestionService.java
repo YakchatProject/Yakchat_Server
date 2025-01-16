@@ -188,6 +188,7 @@ public class QuestionService {
         questionDto.setContent(question.getContent());
         questionDto.setIsAnonymous(question.getIsAnonymous());
         questionDto.setSubjectId(question.getSubject().getId());
+        questionDto.setSubjectName(question.getSubject().getName()); // Set subject name
         questionDto.setUserId(question.getUser().getId());
         questionDto.setUserName(question.getIsAnonymous() ? "" : question.getUser().getUsername()); // 익명 여부에 따라 사용자 이름 설정
         questionDto.setCreatedAt(question.getCreatedAt());
