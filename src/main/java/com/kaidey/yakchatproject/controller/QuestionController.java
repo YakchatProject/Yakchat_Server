@@ -27,14 +27,15 @@ public class QuestionController {
     }
 
     // 질문 생성
-    @PostMapping
+    @PostMapping(consumes = {"multipart/form-data"})
     public ResponseEntity<QuestionDto> createQuestion(
-            @RequestParam String title,
-            @RequestParam String content,
-            @RequestParam Long subjectId,
-            @RequestParam Boolean isAnonymous,
-            @RequestParam(required = false) MultipartFile[] images,
+            @RequestParam("title") String title,
+            @RequestParam("content") String content,
+            @RequestParam("subjectId") Long subjectId,
+            @RequestParam("isAnonymous") Boolean isAnonymous,
+            @RequestParam("images") MultipartFile[] images,
             @RequestHeader("Authorization") String token) {
+
         Long userId = jwtTokenProvider.getUserIdFromToken(token.substring(7));
         QuestionDto questionDto = new QuestionDto();
         questionDto.setTitle(title);
@@ -42,13 +43,16 @@ public class QuestionController {
         questionDto.setSubjectId(subjectId);
         questionDto.setIsAnonymous(isAnonymous);
         questionDto.setUserId(userId);
-        if (images != null) {
+
+        if (images != null && images.length > 0) {
             try {
-                questionDto.setImages(ImageUtils.processImages(images));
+                List<ImageDto> imageDtos = ImageUtils.processImages(images);
+                questionDto.setImages(imageDtos);
             } catch (IOException e) {
-                return ResponseEntity.status(500).body(null);
+                return ResponseEntity.status(500).build();
             }
         }
+
         QuestionDto newQuestion = questionService.createQuestion(questionDto);
         return ResponseEntity.ok(newQuestion);
     }
