@@ -125,6 +125,14 @@ public class AnswerService {
         }
     }
 
+    @Transactional
+    public List<AnswerDto> getAnswersByQuestionId(Long questionId) {
+        List<Answer> answers = answerRepository.findByQuestionId(questionId);
+        return answers.stream()
+                .map(this::convertToDto)
+                .collect(Collectors.toList());
+    }
+
     // 답변 삭제
     @Transactional
     public void deleteAnswer(Long id) {
