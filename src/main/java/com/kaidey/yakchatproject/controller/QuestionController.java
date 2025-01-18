@@ -9,7 +9,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
-
+import java.util.ArrayList;
+import java.util.Base64;
 import java.io.IOException;
 import java.util.List;
 
@@ -33,7 +34,7 @@ public class QuestionController {
             @RequestParam("content") String content,
             @RequestParam("subjectId") Long subjectId,
             @RequestParam("isAnonymous") Boolean isAnonymous,
-            @RequestParam("images") MultipartFile[] images,
+            @RequestParam(value = "images", required = false) String[] images,  // Base64 문자열 배열
             @RequestHeader("Authorization") String token) {
 
         Long userId = jwtTokenProvider.getUserIdFromToken(token.substring(7));
@@ -44,18 +45,22 @@ public class QuestionController {
         questionDto.setIsAnonymous(isAnonymous);
         questionDto.setUserId(userId);
 
+        // Base64 이미지 데이터 처리
         if (images != null && images.length > 0) {
             try {
-                List<ImageDto> imageDtos = ImageUtils.processImages(images);
-                questionDto.setImages(imageDtos);
+                // Base64로 인코딩된 이미지를 ImageDto로 변환
+                List<ImageDto> imageDtos = ImageUtils.processBase64Images(images);
+                questionDto.setImages(imageDtos); // 변환된 이미지 리스트 설정
             } catch (IOException e) {
-                return ResponseEntity.status(500).build();
+                e.printStackTrace();
+                return ResponseEntity.status(500).body(null);
             }
         }
 
         QuestionDto newQuestion = questionService.createQuestion(questionDto);
         return ResponseEntity.ok(newQuestion);
     }
+
 
     // 질문 조회
     @GetMapping("/{id}")
@@ -79,8 +84,9 @@ public class QuestionController {
             @RequestParam String content,
             @RequestParam Long subjectId,
             @RequestParam Boolean isAnonymous,
-            @RequestParam(required = false) MultipartFile[] images,
+            @RequestParam(required = false) String[] images,
             @RequestHeader("Authorization") String token) {
+
         Long userId = jwtTokenProvider.getUserIdFromToken(token.substring(7));
         QuestionDto questionDto = new QuestionDto();
         questionDto.setTitle(title);
@@ -88,16 +94,22 @@ public class QuestionController {
         questionDto.setSubjectId(subjectId);
         questionDto.setIsAnonymous(isAnonymous);
         questionDto.setUserId(userId);
-        if (images != null) {
+
+        // Base64 이미지 처리
+        if (images != null && images.length > 0) {
             try {
-                questionDto.setImages(ImageUtils.processImages(images));
+                List<ImageDto> imageDtos = ImageUtils.processBase64Images(images);  // Base64 처리 메서드 호출
+                questionDto.setImages(imageDtos);  // 이미지 리스트 설정
             } catch (IOException e) {
+                e.printStackTrace();
                 return ResponseEntity.status(500).body(null);
             }
         }
-        QuestionDto updatedQuestionDto = questionService.updateQuestion(id, questionDto);
-        return ResponseEntity.ok(updatedQuestionDto);
+
+        QuestionDto updatedQuestion = questionService.updateQuestion(id, questionDto);
+        return ResponseEntity.ok(updatedQuestion);
     }
+
 
     // 질문 삭제
     @DeleteMapping("/{id}")
@@ -129,7 +141,7 @@ public class QuestionController {
     }
 
     // 질문 좋아요 취소
-    @PostMapping("/{id}/unlike")
+    @DeleteMapping("/{id}/like")
     public ResponseEntity<Void> unlikeQuestion(@PathVariable Long id, @RequestHeader("Authorization") String token) {
         Long userId = jwtTokenProvider.getUserIdFromToken(token.substring(7));
         questionService.unlikeQuestion(id, userId);
