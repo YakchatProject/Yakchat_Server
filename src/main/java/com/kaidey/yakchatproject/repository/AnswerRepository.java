@@ -11,4 +11,6 @@ import java.util.Optional;
 public interface AnswerRepository extends JpaRepository<Answer, Long> {
     List<Answer> findByQuestionId(Long questionId);
     List<Answer> findByQuestionIdAndUserId(Long questionId, Long userId); // Modified to return a list
+    List<Answer> findByQuestionIdOrderByCreatedAtDesc(Long questionId);
+    List<Answer> findByQuestionIdAndUserIdOrderByCreatedAtDesc(Long questionId, Long userId);
 }

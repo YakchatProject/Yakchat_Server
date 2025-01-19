@@ -88,18 +88,36 @@ public class QuestionService {
     // 모든 질문 조회
     @Transactional
     public List<QuestionDto> getAllQuestions() {
-        return questionRepository.findAll().stream()
+        return questionRepository.findByOrderByCreatedAtDesc().stream()
                 .map(this::convertToDto)
                 .collect(Collectors.toList());
     }
 
-    // 과목 ID로 질문 조회
+    // 모든 질문 조회 (오래된 순)
     @Transactional
-    public List<QuestionDto> getQuestionsBySubjectId(Long subjectId) {
-        return questionRepository.findBySubjectId(subjectId).stream()
+    public List<QuestionDto> getAllQuestionsOldestFirst() {
+        return questionRepository.findByOrderByCreatedAtAsc().stream()
                 .map(this::convertToDto)
                 .collect(Collectors.toList());
     }
+
+
+    // 과목 ID로 질문 조회
+    @Transactional
+    public List<QuestionDto> getQuestionsBySubjectId(Long subjectId) {
+        return questionRepository.findBySubjectIdOrderByCreatedAtDesc(subjectId).stream()
+                .map(this::convertToDto)
+                .collect(Collectors.toList());
+    }
+
+    // 과목 ID로 질문 조회 (오래된 순)
+    @Transactional
+    public List<QuestionDto> getQuestionsBySubjectIdOldestFirst(Long subjectId) {
+        return questionRepository.findBySubjectIdOrderByCreatedAtAsc(subjectId).stream()
+                .map(this::convertToDto)
+                .collect(Collectors.toList());
+    }
+
 
     // 질문 업데이트
     @Transactional
@@ -158,9 +176,11 @@ public class QuestionService {
     // 질문 좋아요 취소
     @Transactional
     public void unlikeQuestion(Long questionId, Long userId) {
-        Like like = likeRepository.findByUserIdAndQuestionId(userId, questionId)
-                .orElseThrow(() -> new EntityNotFoundException("Like not found"));
-        likeRepository.delete(like);
+        List<Like> likes = likeRepository.findByUserIdAndQuestionId(userId, questionId);
+        if (likes.isEmpty()) {
+            throw new EntityNotFoundException("Like not found");
+        }
+        likeRepository.deleteAll(likes);
     }
 
     // 질문 좋아요 수 조회

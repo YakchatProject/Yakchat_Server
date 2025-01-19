@@ -87,6 +87,26 @@ public class QuestionController {
         return ResponseEntity.ok(questions);
     }
 
+    @GetMapping("/oldest")
+    public ResponseEntity<List<QuestionDto>> getAllQuestionsOldestFirst() {
+        List<QuestionDto> questions = questionService.getAllQuestions();
+        return ResponseEntity.ok(questions);
+    }
+
+    // 과목 ID로 질문 조회
+    @GetMapping("/subject/{subjectId}")
+    public ResponseEntity<List<QuestionDto>> getQuestionsBySubjectId(@PathVariable Long subjectId) {
+        List<QuestionDto> questions = questionService.getQuestionsBySubjectId(subjectId);
+        return ResponseEntity.ok(questions);
+    }
+
+    // 과목 ID로 질문 조회(오래된 순)
+    @GetMapping("/subject/{subjectId}/oldest")
+    public ResponseEntity<List<QuestionDto>> getQuestionsBySubjectIdOldestFirst(@PathVariable Long subjectId) {
+        List<QuestionDto> questions = questionService.getQuestionsBySubjectIdOldestFirst(subjectId);
+        return ResponseEntity.ok(questions);
+    }
+
     // 질문 수정
     @PutMapping(value = "/{id}", consumes = {"multipart/form-data"})
     public ResponseEntity<QuestionDto> updateQuestion(
@@ -136,12 +156,6 @@ public class QuestionController {
         return ResponseEntity.noContent().build();
     }
 
-    // 과목 ID로 질문 조회
-    @GetMapping("/subject/{subjectId}")
-    public ResponseEntity<List<QuestionDto>> getQuestionsBySubjectId(@PathVariable Long subjectId) {
-        List<QuestionDto> questions = questionService.getQuestionsBySubjectId(subjectId);
-        return ResponseEntity.ok(questions);
-    }
 
     // 질문 좋아요 수 조회
     @GetMapping("/{id}/likeCount")

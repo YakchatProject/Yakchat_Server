@@ -83,7 +83,7 @@ public class AnswerService {
     // 특정 질문과 사용자에 대한 답변 조회
     @Transactional
     public List<AnswerDto> getAnswersByQuestionIdAndUserId(Long questionId, Long userId) {
-        List<Answer> answers = answerRepository.findByQuestionIdAndUserId(questionId, userId);
+        List<Answer> answers = answerRepository.findByQuestionIdAndUserIdOrderByCreatedAtDesc(questionId, userId);
         if (answers.isEmpty()) {
             throw new EntityNotFoundException("No answers found for the given question and user");
         }
@@ -138,7 +138,7 @@ public class AnswerService {
 
     @Transactional
     public List<AnswerDto> getAnswersByQuestionId(Long questionId) {
-        List<Answer> answers = answerRepository.findByQuestionId(questionId);
+        List<Answer> answers = answerRepository.findByQuestionIdOrderByCreatedAtDesc(questionId);
         return answers.stream()
                 .map(this::convertToDto)
                 .collect(Collectors.toList());
