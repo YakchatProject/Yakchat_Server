@@ -6,6 +6,7 @@ import com.kaidey.yakchatproject.service.QuestionService;
 import com.kaidey.yakchatproject.util.ImageUtils;
 import com.kaidey.yakchatproject.security.JwtTokenProvider;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
@@ -13,13 +14,17 @@ import java.util.ArrayList;
 import java.util.Base64;
 import java.io.IOException;
 import java.util.List;
-
+import java.io.File;
 @RestController
 @RequestMapping("/api/questions")
 public class QuestionController {
 
     private final QuestionService questionService;
     private final JwtTokenProvider jwtTokenProvider;
+
+    @Value("${upload.dir}")
+    private String uploadDir;
+
 
     @Autowired
     public QuestionController(QuestionService questionService, JwtTokenProvider jwtTokenProvider) {
@@ -34,7 +39,7 @@ public class QuestionController {
             @RequestParam("content") String content,
             @RequestParam("subjectId") Long subjectId,
             @RequestParam("isAnonymous") Boolean isAnonymous,
-            @RequestParam(value = "images", required = false) String[] images,  // Base64 문자열 배열
+            @RequestParam(value = "images", required = false) MultipartFile[] images,
             @RequestHeader("Authorization") String token) {
 
         Long userId = jwtTokenProvider.getUserIdFromToken(token.substring(7));
@@ -45,12 +50,18 @@ public class QuestionController {
         questionDto.setIsAnonymous(isAnonymous);
         questionDto.setUserId(userId);
 
-        // Base64 이미지 데이터 처리
+        // 이미지 데이터 처리
         if (images != null && images.length > 0) {
             try {
-                // Base64로 인코딩된 이미지를 ImageDto로 변환
-                List<ImageDto> imageDtos = ImageUtils.processBase64Images(images);
-                questionDto.setImages(imageDtos); // 변환된 이미지 리스트 설정
+                List<ImageDto> imageDtos = new ArrayList<>();
+                for (MultipartFile image : images) {
+                    String base64Image = new String(image.getBytes());
+                    String imagePath = ImageUtils.saveBase64Image(base64Image, uploadDir);
+                    ImageDto imageDto = new ImageDto();
+                    imageDto.setUrl("/images/" + new File(imagePath).getName());
+                    imageDtos.add(imageDto);
+                }
+                questionDto.setImages(imageDtos);
             } catch (IOException e) {
                 e.printStackTrace();
                 return ResponseEntity.status(500).body(null);
@@ -84,7 +95,7 @@ public class QuestionController {
             @RequestParam String content,
             @RequestParam Long subjectId,
             @RequestParam Boolean isAnonymous,
-            @RequestParam(required = false) String[] images,
+            @RequestParam(required = false) MultipartFile[] images,
             @RequestHeader("Authorization") String token) {
 
         Long userId = jwtTokenProvider.getUserIdFromToken(token.substring(7));
@@ -95,11 +106,18 @@ public class QuestionController {
         questionDto.setIsAnonymous(isAnonymous);
         questionDto.setUserId(userId);
 
-        // Base64 이미지 처리
+        // 이미지 데이터 처리
         if (images != null && images.length > 0) {
             try {
-                List<ImageDto> imageDtos = ImageUtils.processBase64Images(images);  // Base64 처리 메서드 호출
-                questionDto.setImages(imageDtos);  // 이미지 리스트 설정
+                List<ImageDto> imageDtos = new ArrayList<>();
+                for (MultipartFile image : images) {
+                    String base64Image = new String(image.getBytes());
+                    String imagePath = ImageUtils.saveBase64Image(base64Image, uploadDir);
+                    ImageDto imageDto = new ImageDto();
+                    imageDto.setUrl("/images/" + new File(imagePath).getName());
+                    imageDtos.add(imageDto);
+                }
+                questionDto.setImages(imageDtos);
             } catch (IOException e) {
                 e.printStackTrace();
                 return ResponseEntity.status(500).body(null);

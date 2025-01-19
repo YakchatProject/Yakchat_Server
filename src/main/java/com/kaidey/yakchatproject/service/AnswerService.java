@@ -14,6 +14,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Service
@@ -77,6 +78,16 @@ public class AnswerService {
         Answer answer = answerRepository.findById(id)
                 .orElseThrow(() -> new EntityNotFoundException("Answer not found"));
         return convertToDto(answer);
+    }
+
+    // 특정 질문과 사용자에 대한 답변 조회
+    @Transactional
+    public List<AnswerDto> getAnswersByQuestionIdAndUserId(Long questionId, Long userId) {
+        List<Answer> answers = answerRepository.findByQuestionIdAndUserId(questionId, userId);
+        if (answers.isEmpty()) {
+            throw new EntityNotFoundException("No answers found for the given question and user");
+        }
+        return answers.stream().map(this::convertToDto).collect(Collectors.toList());
     }
 
     // 모든 답변 조회
@@ -170,9 +181,9 @@ public class AnswerService {
         AnswerDto answerDto = new AnswerDto();
         answerDto.setId(answer.getId());
         answerDto.setContent(answer.getContent());
-        answerDto.setIsAnonymous(answer.getIsAnonymous()); // 익명 여부 설정
+        answerDto.setIsAnonymous(answer.getIsAnonymous());
         answerDto.setUserId(answer.getUser().getId());
-        answerDto.setUserName(answer.getIsAnonymous() ? "" : answer.getUser().getUsername()); // 익명 여부에 따라 사용자 이름 설정
+        answerDto.setUserName(answer.getIsAnonymous() ? "" : answer.getUser().getUsername());
         answerDto.setQuestionId(answer.getQuestion().getId());
         answerDto.setCreatedAt(answer.getCreatedAt());
         answerDto.setModifiedAt(answer.getModifiedAt());
