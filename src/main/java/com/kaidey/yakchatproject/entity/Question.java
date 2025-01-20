@@ -51,10 +51,17 @@ public class Question {
 
     private int likes = 0;
 
+    @Column(nullable = false)
+    private int viewCount = 0;
+
     public void updateModifiedAt() {
         this.modifiedAt = LocalDateTime.now();
     }
     public void incrementLikes() {
         this.likes++;
+    }
+
+    public void incrementViewCount() {
+        this.viewCount++;
     }
 }

@@ -25,6 +25,7 @@ public class QuestionDto {
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
     private Integer likeCount;
+    private Integer viewCount;
 
     // 작성 날짜: 질문 등록 시간 (LocalDateTime createdAt)
     //수정 날짜: 질문 수정 시간 (LocalDateTime updatedAt)

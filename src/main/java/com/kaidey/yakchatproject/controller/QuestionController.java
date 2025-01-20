@@ -87,6 +87,7 @@ public class QuestionController {
         return ResponseEntity.ok(questions);
     }
 
+    // 모든 질문 조회(오래된 순)
     @GetMapping("/oldest")
     public ResponseEntity<List<QuestionDto>> getAllQuestionsOldestFirst() {
         List<QuestionDto> questions = questionService.getAllQuestions();
@@ -155,6 +156,7 @@ public class QuestionController {
         questionService.deleteQuestion(id);
         return ResponseEntity.noContent().build();
     }
+
 
 
     // 질문 좋아요 수 조회

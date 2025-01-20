@@ -82,6 +82,8 @@ public class QuestionService {
     public QuestionDto getQuestionById(Long id) {
         Question question = questionRepository.findById(id)
                 .orElseThrow(() -> new EntityNotFoundException("Question not found"));
+        question.incrementViewCount(); // Increment view count
+        questionRepository.save(question); //
         return convertToDto(question);
     }
 
@@ -214,6 +216,7 @@ public class QuestionService {
         questionDto.setCreatedAt(question.getCreatedAt());
         questionDto.setUpdatedAt(question.getModifiedAt());
         questionDto.setLikeCount(question.getLikes());
+        questionDto.setViewCount(question.getViewCount());
         questionDto.setImages(question.getImages().stream()
                 .map(image -> {
                     ImageDto imageDto = new ImageDto();
