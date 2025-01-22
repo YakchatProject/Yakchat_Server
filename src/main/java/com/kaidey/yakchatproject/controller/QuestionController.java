@@ -108,6 +108,24 @@ public class QuestionController {
         return ResponseEntity.ok(questions);
     }
 
+
+
+    // 최신 질문 조회 5개
+    @GetMapping("/latest")
+    public ResponseEntity<List<QuestionDto>> getLatestQuestions() {
+        List<QuestionDto> questions = questionService.getLatestQuestions();
+        return ResponseEntity.ok(questions);
+    }
+
+
+    // 과목 ID로 최신 질문 조회 5개
+    @GetMapping("/subject/{subjectId}/latest")
+    public ResponseEntity<List<QuestionDto>> getLatestQuestionsBySubjectId(@PathVariable Long subjectId) {
+        List<QuestionDto> questions = questionService.getLatestQuestionsBySubjectId(subjectId);
+        return ResponseEntity.ok(questions);
+    }
+
+
     // 질문 수정
     @PutMapping(value = "/{id}", consumes = {"multipart/form-data"})
     public ResponseEntity<QuestionDto> updateQuestion(

@@ -120,6 +120,23 @@ public class QuestionService {
                 .collect(Collectors.toList());
     }
 
+    // 최신 질문 조회 5개
+    @Transactional
+    public List<QuestionDto> getLatestQuestions() {
+        return questionRepository.findTop5ByOrderByCreatedAtDesc().stream()
+                .map(this::convertToDto)
+                .collect(Collectors.toList());
+    }
+
+    // 과목 ID로 최신 질문 조회 5개
+    @Transactional
+    public List<QuestionDto> getLatestQuestionsBySubjectId(Long subjectId) {
+        return questionRepository.findTop5BySubjectIdOrderByCreatedAtDesc(subjectId).stream()
+                .map(this::convertToDto)
+                .collect(Collectors.toList());
+    }
+
+
 
     // 질문 업데이트
     @Transactional
