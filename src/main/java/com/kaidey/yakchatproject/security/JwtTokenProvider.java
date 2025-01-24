@@ -83,4 +83,24 @@ public class JwtTokenProvider {
             return false; // 유효하지 않은 토큰
         }
     }
+
+    // 리프레시 토큰을 갱신하고 새로운 액세스 토큰과 리프레시 토큰 반환
+    public Map<String, String> refreshTokens(String refreshToken) {
+        if (!validateToken(refreshToken)) {
+            throw new RuntimeException("Invalid refresh token");
+        }
+
+        String username = getUsernameFromToken(refreshToken);
+        Long userId = getUserIdFromToken(refreshToken);
+
+        // 새 액세스 토큰과 리프레시 토큰 생성
+        String newAccessToken = generateToken(username, userId);
+        String newRefreshToken = generateRefreshToken(username, userId);
+
+        Map<String, String> tokens = new HashMap<>();
+        tokens.put("access_token", newAccessToken);
+        tokens.put("refreshToken", newRefreshToken);
+
+        return tokens;
+    }
 }

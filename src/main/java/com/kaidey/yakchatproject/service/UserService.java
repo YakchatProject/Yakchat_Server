@@ -56,7 +56,7 @@ public class UserService {
                 String token = jwtTokenProvider.generateToken(userDto.getUsername(), userOptional.get().getId());
                 String refreshToken = jwtTokenProvider.generateRefreshToken(userDto.getUsername(), userOptional.get().getId());
                 Map<String, String> tokens = new HashMap<>();
-                tokens.put("token", token);
+                tokens.put("access_token", token);
                 tokens.put("refreshToken", refreshToken);
                 return tokens;
             } else {
@@ -68,21 +68,32 @@ public class UserService {
     }
 
     // 토큰 갱신
-    public String refreshToken(String refreshToken) {
-        if (jwtTokenProvider.validateToken(refreshToken)) {
-            String username = jwtTokenProvider.getUsernameFromToken(refreshToken);
-            Long userId = jwtTokenProvider.getUserIdFromToken(refreshToken);
-            return jwtTokenProvider.generateToken(username, userId);
-        } else {
+    public Map<String, String> refreshToken(String refreshToken) {
+        // 리프레시 토큰 유효성 검증
+        if (!jwtTokenProvider.validateToken(refreshToken)) {
             throw new RuntimeException("Invalid refresh token");
         }
+
+        // 리프레시 토큰에서 사용자 정보 추출
+        String username = jwtTokenProvider.getUsernameFromToken(refreshToken);
+        Long userId = jwtTokenProvider.getUserIdFromToken(refreshToken);
+
+        // 새로운 액세스 토큰과 리프레시 토큰 생성
+        String newAccessToken = jwtTokenProvider.generateToken(username, userId);
+        String newRefreshToken = jwtTokenProvider.generateRefreshToken(username, userId);
+
+        // 새로운 토큰들을 반환
+        Map<String, String> tokens = new HashMap<>();
+        tokens.put("access_token", newAccessToken);
+        tokens.put("refreshToken", newRefreshToken);
+
+        return tokens;
     }
 
     // 사용자 이름 중복 체크
     public boolean usernameExists(String username) {
         return userRepository.findByUsername(username).isPresent();
     }
-
 
     // 특정 사용자 조회
     public User getUserById(Long id) {

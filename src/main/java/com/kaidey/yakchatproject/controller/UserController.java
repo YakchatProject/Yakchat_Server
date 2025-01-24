@@ -33,14 +33,16 @@ public class UserController {
         }
     }
 
+
+
     @PostMapping("/refresh-token")
-    public ResponseEntity<String> refreshToken(@RequestBody Map<String, String> request) {
+    public ResponseEntity<Map<String, String>> refreshToken(@RequestBody Map<String, String> request) {
         try {
             String refreshToken = request.get("refreshToken");
-            String newToken = userService.refreshToken(refreshToken);
-            return ResponseEntity.ok(newToken);
+            Map<String, String> tokens = userService.refreshToken(refreshToken);
+            return ResponseEntity.ok(tokens);
         } catch (RuntimeException e) {
-            return ResponseEntity.status(403).body(e.getMessage());
+            return ResponseEntity.status(403).body(null);
         }
     }
 

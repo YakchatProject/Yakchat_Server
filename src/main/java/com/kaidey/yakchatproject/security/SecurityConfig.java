@@ -52,7 +52,8 @@ public class SecurityConfig {
                 .sessionManagement(session -> session
                         .sessionCreationPolicy(SessionCreationPolicy.STATELESS)) // Stateless 세션
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/api/auth/login","/api/auth/register").permitAll()  // 인증 없이 접근 가능
+                        .requestMatchers("/api/auth/login","/api/auth/register",
+                                "/api/auth/check-username","/api/auth/refresh-token").permitAll()  // 인증 없이 접근 가능
                         .requestMatchers("/api/answers/**").authenticated()
                         .requestMatchers("/api/questions/**").authenticated()
                         .requestMatchers("/api/profile/**").authenticated()
