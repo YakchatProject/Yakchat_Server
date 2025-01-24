@@ -1,35 +1,36 @@
 package com.kaidey.yakchatproject.controller;
-
 import com.kaidey.yakchatproject.dto.ImageDto;
 import com.kaidey.yakchatproject.dto.QuestionDto;
 import com.kaidey.yakchatproject.service.QuestionService;
 import com.kaidey.yakchatproject.util.ImageUtils;
 import com.kaidey.yakchatproject.security.JwtTokenProvider;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
-import java.util.ArrayList;
+import org.apache.tika.mime.MimeTypeException;
 import java.util.Base64;
-import java.io.IOException;
-import java.util.List;
 import java.io.File;
+
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 @RestController
 @RequestMapping("/api/questions")
 public class QuestionController {
 
     private final QuestionService questionService;
     private final JwtTokenProvider jwtTokenProvider;
+    private final ImageUtils imageUtils;
 
-    @Value("${upload.dir}")
-    private String uploadDir;
+;
 
 
     @Autowired
-    public QuestionController(QuestionService questionService, JwtTokenProvider jwtTokenProvider) {
+    public QuestionController(QuestionService questionService, JwtTokenProvider jwtTokenProvider, ImageUtils imageUtils) {
         this.questionService = questionService;
         this.jwtTokenProvider = jwtTokenProvider;
+        this.imageUtils = imageUtils;
     }
 
     // 질문 생성
@@ -50,19 +51,18 @@ public class QuestionController {
         questionDto.setIsAnonymous(isAnonymous);
         questionDto.setUserId(userId);
 
-        // 이미지 데이터 처리
         if (images != null && images.length > 0) {
             try {
                 List<ImageDto> imageDtos = new ArrayList<>();
                 for (MultipartFile image : images) {
                     String base64Image = new String(image.getBytes());
-                    String imagePath = ImageUtils.saveBase64Image(base64Image, uploadDir);
+                    String imageUrl = imageUtils.saveBase64Image(base64Image, image.getOriginalFilename());
                     ImageDto imageDto = new ImageDto();
-                    imageDto.setUrl("/images/" + new File(imagePath).getName());
+                    imageDto.setUrl(imageUrl);
                     imageDtos.add(imageDto);
                 }
                 questionDto.setImages(imageDtos);
-            } catch (IOException e) {
+            } catch (IOException | MimeTypeException e) {
                 e.printStackTrace();
                 return ResponseEntity.status(500).body(null);
             }
@@ -126,7 +126,7 @@ public class QuestionController {
     }
 
 
-    // 질문 수정
+    // 질문 업데이트
     @PutMapping(value = "/{id}", consumes = {"multipart/form-data"})
     public ResponseEntity<QuestionDto> updateQuestion(
             @PathVariable Long id,
@@ -150,14 +150,14 @@ public class QuestionController {
             try {
                 List<ImageDto> imageDtos = new ArrayList<>();
                 for (MultipartFile image : images) {
-                    String base64Image = new String(image.getBytes());
-                    String imagePath = ImageUtils.saveBase64Image(base64Image, uploadDir);
+                    String base64Image = Base64.getEncoder().encodeToString(image.getBytes());
+                    String imagePath = imageUtils.saveBase64Image(base64Image, image.getOriginalFilename());
                     ImageDto imageDto = new ImageDto();
                     imageDto.setUrl("/images/" + new File(imagePath).getName());
                     imageDtos.add(imageDto);
                 }
                 questionDto.setImages(imageDtos);
-            } catch (IOException e) {
+            } catch (IOException | MimeTypeException e) {
                 e.printStackTrace();
                 return ResponseEntity.status(500).body(null);
             }

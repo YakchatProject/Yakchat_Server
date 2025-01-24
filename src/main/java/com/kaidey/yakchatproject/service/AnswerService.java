@@ -11,7 +11,7 @@ import com.kaidey.yakchatproject.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
+import com.kaidey.yakchatproject.util.ImageUtils;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -24,15 +24,18 @@ public class AnswerService {
     private final QuestionRepository questionRepository;
     private final UserRepository userRepository;
     private final LikeRepository likeRepository;
+    private final ImageUtils imageUtils;
 
     @Autowired
     public AnswerService(AnswerRepository answerRepository,
                          QuestionRepository questionRepository,
-                         UserRepository userRepository, LikeRepository likeRepository) {
+                         UserRepository userRepository, LikeRepository likeRepository,
+                         ImageUtils imageUtils) {
         this.answerRepository = answerRepository;
         this.questionRepository = questionRepository;
         this.userRepository = userRepository;
         this.likeRepository = likeRepository;
+        this.imageUtils = imageUtils;
     }
 
     // 답변 생성
@@ -56,12 +59,12 @@ public class AnswerService {
             }
 
             for (ImageDto imageDto : answerDto.getImages()) {
-                if (imageDto.getData() == null || imageDto.getFileName() == null) {
+                if (imageDto.getUrl() == null || imageDto.getFileName() == null) {
                     throw new RuntimeException("Invalid image data");
                 }
 
                 Image image = new Image();
-                image.setData(imageDto.getData());
+                image.setUrl(imageDto.getUrl());
                 image.setFileName(imageDto.getFileName());
                 image.setAnswer(answer);
                 answer.getImages().add(image);
@@ -118,11 +121,12 @@ public class AnswerService {
             if (answerDto.getImages() != null && !answerDto.getImages().isEmpty()) {
                 answer.getImages().clear();
                 for (ImageDto imageDto : answerDto.getImages()) {
-                    if (imageDto.getData() == null || imageDto.getFileName() == null) {
+                    if (imageDto.getUrl() == null || imageDto.getFileName() == null) {
                         throw new RuntimeException("Invalid image data for image with file name: " + imageDto.getFileName());
                     }
+                    String imageUrl = imageUtils.saveBase64Image(imageDto.getUrl(), imageDto.getFileName());
                     Image image = new Image();
-                    image.setData(imageDto.getData());
+                    image.setUrl(imageUrl);
                     image.setFileName(imageDto.getFileName());
                     image.setAnswer(answer);
                     answer.getImages().add(image);
@@ -191,8 +195,8 @@ public class AnswerService {
         answerDto.setImages(answer.getImages().stream()
                 .map(image -> {
                     ImageDto imageDto = new ImageDto();
-                    imageDto.setData(image.getData());
                     imageDto.setFileName(image.getFileName());
+                    imageDto.setUrl(image.getUrl());
                     return imageDto;
                 }).collect(Collectors.toList()));
         return answerDto;

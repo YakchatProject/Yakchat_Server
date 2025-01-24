@@ -23,11 +23,12 @@ public class ProfileService {
 
     @Transactional
     public ProfileDto getProfile(Long userId) {
-        User user = userRepository.findById(userId)
-                .orElseThrow(() -> new EntityNotFoundException("User not found"));
+        User user = userRepository.findById(userId).orElseThrow(() -> new RuntimeException("User not found"));
         ProfileDto profileDto = new ProfileDto();
+        profileDto.setUsername(user.getUsername());
         profileDto.setSchool(user.getSchool());
         profileDto.setGrade(user.getGrade());
+        profileDto.setAge(user.getAge());
         profileDto.setProfileImage(user.getProfileImage());
         return profileDto;
     }

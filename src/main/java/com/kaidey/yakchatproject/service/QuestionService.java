@@ -61,12 +61,12 @@ public class QuestionService {
         }
 
         for (ImageDto imageDto : questionDto.getImages()) {
-            if (imageDto.getData() == null || imageDto.getFileName() == null) {
+            if (imageDto.getUrl() == null || imageDto.getFileName() == null) {
                 throw new RuntimeException("Invalid image data");
             }
 
             Image image = new Image();
-            image.setData(imageDto.getData());
+            image.setUrl(imageDto.getUrl());
             image.setFileName(imageDto.getFileName());
             image.setQuestion(question);
             question.getImages().add(image);
@@ -144,23 +144,23 @@ public class QuestionService {
         Question question = questionRepository.findById(id)
                 .orElseThrow(() -> new EntityNotFoundException("Question not found"));
 
-        // 질문 세부사항 업데이트
+        // Update question details
         question.setTitle(questionDto.getTitle());
         question.setContent(questionDto.getContent());
-        question.setIsAnonymous(questionDto.getIsAnonymous()); // isAnonymous 설정
+        question.setIsAnonymous(questionDto.getIsAnonymous());
 
-        // 과목 업데이트
+        // Update subject
         Subject subject = subjectRepository.findById(questionDto.getSubjectId())
                 .orElseThrow(() -> new EntityNotFoundException("Subject not found"));
         question.setSubject(subject);
 
-        // 이미지가 제공된 경우 업데이트
+        // Update images if provided
         if (questionDto.getImages() != null && !questionDto.getImages().isEmpty()) {
             question.getImages().clear();
             for (ImageDto imageDto : questionDto.getImages()) {
                 Image image = new Image();
-                image.setData(imageDto.getData());
                 image.setFileName(imageDto.getFileName());
+                image.setUrl(imageDto.getUrl());
                 image.setQuestion(question);
                 question.getImages().add(image);
             }
@@ -229,7 +229,7 @@ public class QuestionService {
         questionDto.setSubjectId(question.getSubject().getId());
         questionDto.setSubjectName(question.getSubject().getName()); // Set subject name
         questionDto.setUserId(question.getUser().getId());
-        questionDto.setUserName(question.getIsAnonymous() ? "" : question.getUser().getUsername()); // 익명 여부에 따라 사용자 이름 설정
+        questionDto.setUserName(question.getIsAnonymous() ? "" : question.getUser().getUsername()); // Set username based on anonymity
         questionDto.setCreatedAt(question.getCreatedAt());
         questionDto.setUpdatedAt(question.getModifiedAt());
         questionDto.setLikeCount(question.getLikes());
@@ -237,8 +237,8 @@ public class QuestionService {
         questionDto.setImages(question.getImages().stream()
                 .map(image -> {
                     ImageDto imageDto = new ImageDto();
-                    imageDto.setData(image.getData());
                     imageDto.setFileName(image.getFileName());
+                    imageDto.setUrl(image.getUrl());
                     return imageDto;
                 }).collect(Collectors.toList()));
         return questionDto;

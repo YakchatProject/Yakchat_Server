@@ -29,6 +29,11 @@ public class UserService {
     // 사용자 등록
     public User registerUser(UserDto userDto) {
         try {
+            // 유저 이름 중복 체크
+            if (userRepository.findByUsername(userDto.getUsername()).isPresent()) {
+                throw new RuntimeException("Username already exists");
+            }
+
             User user = new User();
             user.setUsername(userDto.getUsername());
             user.setPassword(passwordEncoder.encode(userDto.getPassword())); // 비밀번호 암호화
@@ -45,6 +50,7 @@ public class UserService {
             throw new RuntimeException("Error registering user: " + e.getMessage());
         }
     }
+
     // 사용자 로그인
     public String loginUser(UserDto userDto) {
         try {

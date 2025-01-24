@@ -15,10 +15,10 @@ public class Image {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Lob
-    private byte[] data; // 이미지 데이터
-
     private String fileName; // 파일 이름
+
+    @Column(nullable = false)
+    private String url;
 
     @ManyToOne // 다대일 관계
     @JoinColumn(name = "question_id", nullable = true)

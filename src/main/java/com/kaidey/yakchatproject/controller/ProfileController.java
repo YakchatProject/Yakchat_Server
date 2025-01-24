@@ -23,12 +23,23 @@ public class ProfileController {
         this.jwtTokenProvider = jwtTokenProvider;
     }
 
+    // 프로필 조회
     @GetMapping("/{userId}")
     public ResponseEntity<ProfileDto> getProfile(@PathVariable Long userId) {
         ProfileDto profile = profileService.getProfile(userId);
         return ResponseEntity.ok(profile);
     }
 
+    // 자기 자신의 프로필 조회
+    @GetMapping("/me")
+    public ResponseEntity<ProfileDto> getMyProfile(@RequestHeader("Authorization") String token) {
+        Long userId = jwtTokenProvider.getUserIdFromToken(token.substring(7));
+        ProfileDto profile = profileService.getProfile(userId);
+        return ResponseEntity.ok(profile);
+    }
+
+
+    // 프로필 이미지 업로드
     @PostMapping("/upload")
     public ResponseEntity<Void> uploadProfileImage(@RequestParam("file") MultipartFile file,
                                                    @RequestHeader("Authorization") String token) {

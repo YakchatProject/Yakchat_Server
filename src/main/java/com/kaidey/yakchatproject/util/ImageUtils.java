@@ -1,47 +1,78 @@
 package com.kaidey.yakchatproject.util;
 
-import java.io.File;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.util.Base64;
+import org.apache.tika.mime.MimeTypeException;
+import org.apache.tika.mime.MimeTypes;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.stereotype.Component;
 
+import java.io.*;
+import java.util.Base64;
+import java.util.Set;
+import java.util.UUID;
+
+@Component
 public class ImageUtils {
 
-    public static String saveBase64Image(String base64Image, String uploadDir) throws IOException {
-        if (base64Image == null || !base64Image.contains(",")) {
-            throw new IllegalArgumentException("Invalid Base64 format: Missing comma separating data and metadata.");
+    @Value("${upload.dir}")
+    private String uploadDir;
+
+
+    public String saveBase64Image(String base64, String fileName) throws MimeTypeException {
+        System.out.println("Base64 Input Length: " + base64.length());
+
+        int colon = base64.indexOf(":");
+        int semicolon = base64.indexOf(";");
+        String mimeType = base64.substring(colon + 1, semicolon);
+
+        System.out.println("MIME Type: " + mimeType);
+
+        String base64WithoutHeader = base64.substring(semicolon + 8);
+        System.out.println("Base64 Data Length: " + base64WithoutHeader.length());
+
+        // MIME 타입 매핑 및 확장자 추출
+        String extension;
+        try {
+            extension = MimeTypes.getDefaultMimeTypes().forName(mimeType).getExtension();
+            System.out.println("File Extension: " + extension);
+        } catch (MimeTypeException e) {
+            System.out.println("MimeTypeException: " + e.getMessage());
+            throw e;
         }
 
-        String[] parts = base64Image.split(",", 2);
-        String metadata = parts[0];
-        String base64Data = parts[1];
-
-        if (!metadata.startsWith("data:image/") || !metadata.contains(";base64")) {
-            throw new IllegalArgumentException("Invalid metadata format: Metadata should start with 'data:image/' and contain ';base64'.");
+        // Base64 디코딩
+        byte[] bytes;
+        try {
+            bytes = Base64.getDecoder().decode(base64WithoutHeader);
+            System.out.println("Decoded Bytes Length: " + bytes.length);
+        } catch (IllegalArgumentException e) {
+            System.out.println("Base64 decoding failed: " + e.getMessage());
+            throw e;
         }
 
-        byte[] imageData = Base64.getDecoder().decode(base64Data);
-        String fileName = extractFileNameFromMetadata(metadata);
-        File dir = new File(uploadDir);
+        // 파일 저장 경로 설정
+        fileName = fileName + "_" + UUID.randomUUID() + extension;
+        File file = new File(uploadDir + "/" + fileName);
 
-        // 디렉토리가 존재하지 않으면 생성
-        if (!dir.exists()) {
-            if (!dir.mkdirs()) {
-                throw new IOException("Failed to create directory: " + uploadDir);
+        File parentDir = file.getParentFile();
+        if (!parentDir.exists()) {
+            if (parentDir.mkdirs()) {
+                System.out.println("Directories created successfully.");
+            } else {
+                System.out.println("Failed to create directories.");
             }
         }
 
-        File file = new File(dir, fileName);
-
-        try (FileOutputStream fos = new FileOutputStream(file)) {
-            fos.write(imageData);
+        // 파일 쓰기
+        try (OutputStream outputStream = new BufferedOutputStream(new FileOutputStream(file))) {
+            outputStream.write(bytes);
+            System.out.println("File saved successfully at: " + file.getAbsolutePath());
+        } catch (IOException e) {
+            System.out.println("Failed to write file: " + e.getMessage());
+            e.printStackTrace();
+            throw new RuntimeException("Failed to save image file", e);
         }
 
-        return file.getAbsolutePath();
+        return "/images/" + fileName;
     }
 
-    private static String extractFileNameFromMetadata(String metadata) {
-        String fileType = metadata.split("/")[1].split(";")[0];
-        return "image_" + System.currentTimeMillis() + "." + fileType;
-    }
 }

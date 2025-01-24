@@ -1,46 +1,45 @@
 package com.kaidey.yakchatproject.controller;
 
-import com.kaidey.yakchatproject.dto.AnswerDto;
 import com.kaidey.yakchatproject.entity.User;
-import com.kaidey.yakchatproject.service.AnswerService;
-import com.kaidey.yakchatproject.util.ImageUtils;
-import com.kaidey.yakchatproject.security.JwtTokenProvider;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.http.ResponseEntity;
+import org.apache.tika.mime.MimeTypeException;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.userdetails.UserDetails;
-import org.springframework.web.bind.annotation.*;
-import org.springframework.web.multipart.MultipartFile;
 import com.kaidey.yakchatproject.dto.ImageDto;
 import org.springframework.http.HttpStatus;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import java.util.Optional;
-
-import java.io.File;
-import java.util.ArrayList;
-import java.io.IOException;
-
 import java.util.List;
+import com.kaidey.yakchatproject.dto.AnswerDto;
+import com.kaidey.yakchatproject.service.AnswerService;
+import com.kaidey.yakchatproject.util.ImageUtils;
+import com.kaidey.yakchatproject.security.JwtTokenProvider;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
+import org.apache.tika.mime.MimeTypeException;
+
+import java.io.IOException;
+import java.util.ArrayList;
+
 
 @RestController
 @RequestMapping("/api/answers")
 public class AnswerController {
 
-    private final AnswerService answerService;
-    private final JwtTokenProvider jwtTokenProvider;
-
-    @Value("${upload.dir}")
-    private String uploadDir;
 
     private static final Logger logger = LoggerFactory.getLogger(QuestionController.class);
 
 
+    private final AnswerService answerService;
+    private final JwtTokenProvider jwtTokenProvider;
+    private final ImageUtils imageUtils;
+
     @Autowired
-    public AnswerController(AnswerService answerService, JwtTokenProvider jwtTokenProvider) {
+    public AnswerController(AnswerService answerService, JwtTokenProvider jwtTokenProvider, ImageUtils imageUtils) {
         this.answerService = answerService;
         this.jwtTokenProvider = jwtTokenProvider;
+        this.imageUtils = imageUtils;
     }
 
     // 답변 생성
@@ -48,7 +47,6 @@ public class AnswerController {
     public ResponseEntity<AnswerDto> createAnswer(
             @RequestParam String content,
             @RequestParam Long questionId,
-            @RequestParam Boolean isAnonymous,
             @RequestParam(required = false) MultipartFile[] images,
             @RequestHeader("Authorization") String token) {
 
@@ -56,26 +54,26 @@ public class AnswerController {
         AnswerDto answerDto = new AnswerDto();
         answerDto.setContent(content);
         answerDto.setQuestionId(questionId);
-        answerDto.setIsAnonymous(isAnonymous);
+        answerDto.setUserId(userId);
 
         if (images != null && images.length > 0) {
             try {
                 List<ImageDto> imageDtos = new ArrayList<>();
                 for (MultipartFile image : images) {
                     String base64Image = new String(image.getBytes());
-                    String imagePath = ImageUtils.saveBase64Image(base64Image, uploadDir);
+                    String imageUrl = imageUtils.saveBase64Image(base64Image, image.getOriginalFilename());
                     ImageDto imageDto = new ImageDto();
-                    imageDto.setUrl("/images/" + new File(imagePath).getName());
+                    imageDto.setUrl(imageUrl);
                     imageDtos.add(imageDto);
                 }
                 answerDto.setImages(imageDtos);
-            } catch (IOException e) {
+            } catch (IOException | MimeTypeException e) {
                 e.printStackTrace();
                 return ResponseEntity.status(500).body(null);
             }
         }
 
-        AnswerDto newAnswer = answerService.createAnswer(answerDto, userId);
+        AnswerDto newAnswer = answerService.createAnswer(answerDto, questionId);
         return ResponseEntity.ok(newAnswer);
     }
 
@@ -144,7 +142,6 @@ public class AnswerController {
             @PathVariable Long id,
             @RequestParam String content,
             @RequestParam Long questionId,
-            @RequestParam Boolean isAnonymous,
             @RequestParam(required = false) MultipartFile[] images,
             @RequestHeader("Authorization") String token) {
 
@@ -152,20 +149,20 @@ public class AnswerController {
         AnswerDto answerDto = new AnswerDto();
         answerDto.setContent(content);
         answerDto.setQuestionId(questionId);
-        answerDto.setIsAnonymous(isAnonymous);
+        answerDto.setUserId(userId);
 
         if (images != null && images.length > 0) {
             try {
                 List<ImageDto> imageDtos = new ArrayList<>();
                 for (MultipartFile image : images) {
                     String base64Image = new String(image.getBytes());
-                    String imagePath = ImageUtils.saveBase64Image(base64Image, uploadDir);
+                    String imageUrl = imageUtils.saveBase64Image(base64Image, image.getOriginalFilename());
                     ImageDto imageDto = new ImageDto();
-                    imageDto.setUrl("/images/" + new File(imagePath).getName());
+                    imageDto.setUrl(imageUrl);
                     imageDtos.add(imageDto);
                 }
                 answerDto.setImages(imageDtos);
-            } catch (IOException e) {
+            } catch (IOException | MimeTypeException e) {
                 e.printStackTrace();
                 return ResponseEntity.status(500).body(null);
             }

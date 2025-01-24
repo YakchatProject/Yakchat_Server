@@ -8,6 +8,8 @@ import lombok.Setter;
 @Setter
 @NoArgsConstructor
 public class ProfileDto {
+    private String username;
+    private Integer age;
     private String school;
     private String grade;
     private byte[] profileImage; // 프로필 이미지 추가
