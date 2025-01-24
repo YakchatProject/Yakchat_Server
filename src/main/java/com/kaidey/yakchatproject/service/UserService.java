@@ -78,6 +78,12 @@ public class UserService {
         }
     }
 
+    // 사용자 이름 중복 체크
+    public boolean usernameExists(String username) {
+        return userRepository.findByUsername(username).isPresent();
+    }
+
+
     // 특정 사용자 조회
     public User getUserById(Long id) {
         try {
