@@ -8,6 +8,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/api/auth")
@@ -17,20 +18,27 @@ public class UserController {
     private UserService userService;
 
     @PostMapping("/register")
-    public ResponseEntity<?> registerUser(@RequestBody UserDto userDto) {
-        try {
-            User newUser = userService.registerUser(userDto);
-            return ResponseEntity.ok(newUser);
-        } catch (RuntimeException e) {
-            return ResponseEntity.status(400).body(e.getMessage());
-        }
+    public ResponseEntity<User> registerUser(@RequestBody UserDto userDto) {
+        User newUser = userService.registerUser(userDto);
+        return ResponseEntity.ok(newUser);
     }
 
     @PostMapping("/login")
-    public ResponseEntity<String> loginUser(@RequestBody UserDto userDto) {
+    public ResponseEntity<Map<String, String>> loginUser(@RequestBody UserDto userDto) {
         try {
-            String token = userService.loginUser(userDto);
-            return ResponseEntity.ok(token);
+            Map<String, String> tokens = userService.loginUser(userDto);
+            return ResponseEntity.ok(tokens);
+        } catch (RuntimeException e) {
+            return ResponseEntity.status(403).body(null);
+        }
+    }
+
+    @PostMapping("/refresh-token")
+    public ResponseEntity<String> refreshToken(@RequestBody Map<String, String> request) {
+        try {
+            String refreshToken = request.get("refreshToken");
+            String newToken = userService.refreshToken(refreshToken);
+            return ResponseEntity.ok(newToken);
         } catch (RuntimeException e) {
             return ResponseEntity.status(403).body(e.getMessage());
         }

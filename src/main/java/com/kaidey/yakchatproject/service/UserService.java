@@ -9,10 +9,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import com.kaidey.yakchatproject.entity.enums.RoleType;
 
-import java.util.HashSet;
-import java.util.List;
-import java.util.Optional;
-import java.util.Set;
+import java.util.*;
 
 @Service
 public class UserService {
@@ -52,11 +49,16 @@ public class UserService {
     }
 
     // 사용자 로그인
-    public String loginUser(UserDto userDto) {
+    public Map<String, String> loginUser(UserDto userDto) {
         try {
             Optional<User> userOptional = userRepository.findByUsername(userDto.getUsername());
             if (userOptional.isPresent() && passwordEncoder.matches(userDto.getPassword(), userOptional.get().getPassword())) {
-                return jwtTokenProvider.generateToken(userDto.getUsername(), userOptional.get().getId());
+                String token = jwtTokenProvider.generateToken(userDto.getUsername(), userOptional.get().getId());
+                String refreshToken = jwtTokenProvider.generateRefreshToken(userDto.getUsername(), userOptional.get().getId());
+                Map<String, String> tokens = new HashMap<>();
+                tokens.put("token", token);
+                tokens.put("refreshToken", refreshToken);
+                return tokens;
             } else {
                 throw new RuntimeException("Invalid username or password");
             }
@@ -65,6 +67,16 @@ public class UserService {
         }
     }
 
+    // 토큰 갱신
+    public String refreshToken(String refreshToken) {
+        if (jwtTokenProvider.validateToken(refreshToken)) {
+            String username = jwtTokenProvider.getUsernameFromToken(refreshToken);
+            Long userId = jwtTokenProvider.getUserIdFromToken(refreshToken);
+            return jwtTokenProvider.generateToken(username, userId);
+        } else {
+            throw new RuntimeException("Invalid refresh token");
+        }
+    }
 
     // 특정 사용자 조회
     public User getUserById(Long id) {

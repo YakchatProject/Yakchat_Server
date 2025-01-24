@@ -19,22 +19,34 @@ public class JwtTokenProvider {
     @Value("${jwt.expiration}") // application.yml에서 토큰 유효 시간 읽기
     private long EXPIRATION_TIME;
 
+    @Value("${jwt.refreshExpiration}")
+    private long REFRESH_EXPIRATION_TIME;
+
+
     // JWT 토큰 생성
     public String generateToken(String username, Long userId) {
         Map<String, Object> claims = new HashMap<>();
-        claims.put("username", username);  // 사용자 이름을 클레임에 추가
-        claims.put("userId", userId);      // 사용자 ID를 클레임에 추가
-        return createToken(claims, username);
+        claims.put("username", username);
+        claims.put("userId", userId);
+        return createToken(claims, username, EXPIRATION_TIME);
     }
 
 
+    // JWT 리프레시 토큰 생성
+    public String generateRefreshToken(String username, Long userId) {
+        Map<String, Object> claims = new HashMap<>();
+        claims.put("username", username);
+        claims.put("userId", userId);
+        return createToken(claims, username, REFRESH_EXPIRATION_TIME);
+    }
+
     // JWT 토큰 생성 로직 분리
-    private String createToken(Map<String, Object> claims, String subject) {
+    private String createToken(Map<String, Object> claims, String subject, long expirationTime) {
         return Jwts.builder()
                 .setClaims(claims)
                 .setSubject(subject)
                 .setIssuedAt(new Date(System.currentTimeMillis()))
-                .setExpiration(new Date(System.currentTimeMillis() + EXPIRATION_TIME))
+                .setExpiration(new Date(System.currentTimeMillis() + expirationTime))
                 .signWith(SignatureAlgorithm.HS512, SECRET_KEY)
                 .compact();
     }
