@@ -18,6 +18,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 import org.apache.tika.mime.MimeTypeException;
+import java.io.File;
+
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -45,9 +47,9 @@ public class AnswerController {
     // 답변 생성
     @PostMapping(consumes = {"multipart/form-data"})
     public ResponseEntity<AnswerDto> createAnswer(
-            @RequestParam String content,
-            @RequestParam Long questionId,
-            @RequestParam(required = false) MultipartFile[] images,
+            @RequestParam("content") String content,
+            @RequestParam("questionId") Long questionId,
+            @RequestParam(value = "images", required = false) List<String> images,  // List<String>으로 변경
             @RequestHeader("Authorization") String token) {
 
         Long userId = jwtTokenProvider.getUserIdFromToken(token.substring(7));
@@ -56,23 +58,16 @@ public class AnswerController {
         answerDto.setQuestionId(questionId);
         answerDto.setUserId(userId);
 
-        if (images != null && images.length > 0) {
+        // 이미지 처리 로직을 Service로 위임
+        if (images != null && !images.isEmpty()) {
             try {
-                List<ImageDto> imageDtos = new ArrayList<>();
-                for (MultipartFile image : images) {
-                    String base64Image = new String(image.getBytes());
-                    String imageUrl = imageUtils.saveBase64Image(base64Image, image.getOriginalFilename());
-                    ImageDto imageDto = new ImageDto();
-                    imageDto.setUrl(imageUrl);
-                    imageDtos.add(imageDto);
-                }
-                answerDto.setImages(imageDtos);
-            } catch (IOException | MimeTypeException e) {
-                e.printStackTrace();
-                return ResponseEntity.status(500).body(null);
+                answerDto.setImages(imageUtils.processImages(images)); // 이미지 처리 서비스 호출
+            } catch (MimeTypeException | IllegalArgumentException e) {
+                return ResponseEntity.status(e instanceof MimeTypeException ? 500 : 400).body(null);
             }
         }
 
+        // 서비스에서 답변을 생성
         AnswerDto newAnswer = answerService.createAnswer(answerDto, questionId);
         return ResponseEntity.ok(newAnswer);
     }
@@ -140,9 +135,9 @@ public class AnswerController {
     @PutMapping(value = "/{id}", consumes = {"multipart/form-data"})
     public ResponseEntity<AnswerDto> updateAnswer(
             @PathVariable Long id,
-            @RequestParam String content,
-            @RequestParam Long questionId,
-            @RequestParam(required = false) MultipartFile[] images,
+            @RequestParam("content") String content,
+            @RequestParam("questionId") Long questionId,
+            @RequestParam(value = "images", required = false) List<String> images,  // List<String>으로 변경
             @RequestHeader("Authorization") String token) {
 
         Long userId = jwtTokenProvider.getUserIdFromToken(token.substring(7));
@@ -151,26 +146,20 @@ public class AnswerController {
         answerDto.setQuestionId(questionId);
         answerDto.setUserId(userId);
 
-        if (images != null && images.length > 0) {
+        // 이미지 처리 로직을 Service로 위임
+        if (images != null && !images.isEmpty()) {
             try {
-                List<ImageDto> imageDtos = new ArrayList<>();
-                for (MultipartFile image : images) {
-                    String base64Image = new String(image.getBytes());
-                    String imageUrl = imageUtils.saveBase64Image(base64Image, image.getOriginalFilename());
-                    ImageDto imageDto = new ImageDto();
-                    imageDto.setUrl(imageUrl);
-                    imageDtos.add(imageDto);
-                }
-                answerDto.setImages(imageDtos);
-            } catch (IOException | MimeTypeException e) {
-                e.printStackTrace();
-                return ResponseEntity.status(500).body(null);
+                answerDto.setImages(imageUtils.processImages(images)); // 이미지 처리 서비스 호출
+            } catch (MimeTypeException | IllegalArgumentException e) {
+                return ResponseEntity.status(e instanceof MimeTypeException ? 500 : 400).body(null);
             }
         }
 
+        // 서비스에서 답변을 업데이트
         AnswerDto updatedAnswer = answerService.updateAnswer(id, answerDto);
         return ResponseEntity.ok(updatedAnswer);
     }
+
 
     // 답변 삭제
     @DeleteMapping("/{id}")

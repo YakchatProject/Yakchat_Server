@@ -47,8 +47,8 @@ public class User implements UserDetails {
 
     private LocalDateTime lastLoginAt;
 
-    @Lob
-    private byte[] profileImage; // Add profileImage field
+    @Column(nullable = true)
+    private String profileImageUrl;
 
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Question> questions = new ArrayList<>();

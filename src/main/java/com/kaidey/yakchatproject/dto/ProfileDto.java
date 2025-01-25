@@ -12,5 +12,7 @@ public class ProfileDto {
     private Integer age;
     private String school;
     private String grade;
-    private byte[] profileImage; // 프로필 이미지 추가
+    private String ProfileImage;
+    private String ProfileImageUrl;
+
 }

@@ -16,6 +16,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
+import org.apache.tika.mime.MimeTypeException;
+
 
 @Service
 public class AnswerService {
@@ -41,28 +43,24 @@ public class AnswerService {
     // 답변 생성
     @Transactional
     public AnswerDto createAnswer(AnswerDto answerDto, Long userId) {
+        // Question 찾기
         Question question = questionRepository.findById(answerDto.getQuestionId())
                 .orElseThrow(() -> new EntityNotFoundException("Question not found"));
 
+        // User 찾기
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new EntityNotFoundException("User not found"));
 
+        // Answer 객체 생성 및 세팅
         Answer answer = new Answer();
         answer.setContent(answerDto.getContent());
         answer.setIsAnonymous(answerDto.getIsAnonymous());
         answer.setQuestion(question);
         answer.setUser(user);
 
+        // 이미지 처리
         if (answerDto.getImages() != null && !answerDto.getImages().isEmpty()) {
-            if (answer.getImages() == null) {
-                answer.setImages(new ArrayList<>());
-            }
-
             for (ImageDto imageDto : answerDto.getImages()) {
-                if (imageDto.getUrl() == null || imageDto.getFileName() == null) {
-                    throw new RuntimeException("Invalid image data");
-                }
-
                 Image image = new Image();
                 image.setUrl(imageDto.getUrl());
                 image.setFileName(imageDto.getFileName());
@@ -71,9 +69,12 @@ public class AnswerService {
             }
         }
 
+        // 답변 저장
         Answer savedAnswer = answerRepository.save(answer);
         return convertToDto(savedAnswer);
     }
+
+
 
     // 특정 답변 조회
     @Transactional
@@ -104,41 +105,37 @@ public class AnswerService {
     // 답변 업데이트
     @Transactional
     public AnswerDto updateAnswer(Long id, AnswerDto answerDto) {
-        try {
-            Answer answer = answerRepository.findById(id)
-                    .orElseThrow(() -> new EntityNotFoundException("Answer not found with id: " + id));
+        // Answer 찾기
+        Answer answer = answerRepository.findById(id)
+                .orElseThrow(() -> new EntityNotFoundException("Answer not found with id: " + id));
 
-            // Update answer details
-            answer.setContent(answerDto.getContent());
-            answer.setIsAnonymous(answerDto.getIsAnonymous()); // 익명 여부 설정
+        // Answer 세팅
+        answer.setContent(answerDto.getContent());
+        answer.setIsAnonymous(answerDto.getIsAnonymous()); // 익명 여부 설정
 
-            // Update question
-            Question question = questionRepository.findById(answerDto.getQuestionId())
-                    .orElseThrow(() -> new EntityNotFoundException("Question not found with id: " + answerDto.getQuestionId()));
-            answer.setQuestion(question);
+        // Question 찾기
+        Question question = questionRepository.findById(answerDto.getQuestionId())
+                .orElseThrow(() -> new EntityNotFoundException("Question not found with id: " + answerDto.getQuestionId()));
+        answer.setQuestion(question);
 
-            // Update images if provided
-            if (answerDto.getImages() != null && !answerDto.getImages().isEmpty()) {
-                answer.getImages().clear();
-                for (ImageDto imageDto : answerDto.getImages()) {
-                    if (imageDto.getUrl() == null || imageDto.getFileName() == null) {
-                        throw new RuntimeException("Invalid image data for image with file name: " + imageDto.getFileName());
-                    }
-                    String imageUrl = imageUtils.saveBase64Image(imageDto.getUrl(), imageDto.getFileName());
-                    Image image = new Image();
-                    image.setUrl(imageUrl);
-                    image.setFileName(imageDto.getFileName());
-                    image.setAnswer(answer);
-                    answer.getImages().add(image);
-                }
+        // 이미지 처리
+        if (answerDto.getImages() != null && !answerDto.getImages().isEmpty()) {
+            answer.getImages().clear(); // 기존 이미지를 제거하고 새 이미지로 교체
+            for (ImageDto imageDto : answerDto.getImages()) {
+                Image image = new Image();
+                image.setUrl(imageDto.getUrl());
+                image.setFileName(imageDto.getFileName());
+                image.setAnswer(answer);
+                answer.getImages().add(image);
             }
-
-            Answer updatedAnswer = answerRepository.save(answer);
-            return convertToDto(updatedAnswer);
-        } catch (Exception e) {
-            throw new RuntimeException("Error updating answer: " + e.getMessage(), e);
         }
+
+        // 답변 저장
+        Answer updatedAnswer = answerRepository.save(answer);
+        return convertToDto(updatedAnswer);
     }
+
+
 
     @Transactional
     public List<AnswerDto> getAnswersByQuestionId(Long questionId) {

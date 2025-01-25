@@ -20,6 +20,8 @@ public class Image {
     @Column(nullable = false)
     private String url;
 
+    private String mime; // MIME 타입
+
     @ManyToOne // 다대일 관계
     @JoinColumn(name = "question_id", nullable = true)
     private Question question; // 연관된 질문 (nullable)

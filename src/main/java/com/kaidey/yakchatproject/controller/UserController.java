@@ -18,9 +18,16 @@ public class UserController {
     private UserService userService;
 
     @PostMapping("/register")
-    public ResponseEntity<User> registerUser(@RequestBody UserDto userDto) {
-        User newUser = userService.registerUser(userDto);
-        return ResponseEntity.ok(newUser);
+    public ResponseEntity<?> registerUser(@RequestBody UserDto userDto) {
+        try {
+            User newUser = userService.registerUser(userDto);
+            return ResponseEntity.ok(newUser);
+        } catch (RuntimeException e) {
+            if (e.getMessage().contains("Username already exists")) {
+                return ResponseEntity.status(409).body("Username already exists");
+            }
+            return ResponseEntity.status(500).body("Error registering user: " + e.getMessage());
+        }
     }
 
     @PostMapping("/login")

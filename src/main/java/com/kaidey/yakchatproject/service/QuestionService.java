@@ -17,6 +17,9 @@ import org.springframework.web.bind.annotation.GetMapping;
 import java.util.List;
 import java.util.ArrayList;
 import java.util.stream.Collectors;
+import org.apache.tika.mime.MimeTypeException;
+import com.kaidey.yakchatproject.util.ImageUtils;
+
 
 @Service
 public class QuestionService {
@@ -25,6 +28,7 @@ public class QuestionService {
     private final SubjectRepository subjectRepository;
     private final UserRepository userRepository;
     private final LikeRepository likeRepository;
+    private final ImageUtils imageUtils = new ImageUtils();
 
     @Autowired
     public QuestionService(QuestionRepository questionRepository, SubjectRepository subjectRepository,
@@ -38,44 +42,38 @@ public class QuestionService {
     // 질문 생성
     @Transactional
     public QuestionDto createQuestion(QuestionDto questionDto) {
-    if (questionDto.getSubjectId() == null) {
-        throw new IllegalArgumentException("Subject ID must not be null");
-    }
+        // Subject와 User 찾기
+        Subject subject = subjectRepository.findById(questionDto.getSubjectId())
+                .orElseThrow(() -> new EntityNotFoundException("Subject not found"));
 
-    Subject subject = subjectRepository.findById(questionDto.getSubjectId())
-            .orElseThrow(() -> new EntityNotFoundException("Subject not found"));
+        User user = userRepository.findById(questionDto.getUserId())
+                .orElseThrow(() -> new EntityNotFoundException("User not found"));
 
-    User user = userRepository.findById(questionDto.getUserId())
-            .orElseThrow(() -> new EntityNotFoundException("User not found"));
+        // Question 객체 생성 및 세팅
+        Question question = new Question();
+        question.setTitle(questionDto.getTitle());
+        question.setContent(questionDto.getContent());
+        question.setIsAnonymous(questionDto.getIsAnonymous());
+        question.setSubject(subject);
+        question.setUser(user);
 
-    Question question = new Question();
-    question.setTitle(questionDto.getTitle());
-    question.setContent(questionDto.getContent());
-    question.setIsAnonymous(questionDto.getIsAnonymous());
-    question.setSubject(subject);
-    question.setUser(user);
-
-    if (questionDto.getImages() != null && !questionDto.getImages().isEmpty()) {
-        if (question.getImages() == null) {
-            question.setImages(new ArrayList<>());
-        }
-
-        for (ImageDto imageDto : questionDto.getImages()) {
-            if (imageDto.getUrl() == null || imageDto.getFileName() == null) {
-                throw new RuntimeException("Invalid image data");
+        // 이미지 처리
+        if (questionDto.getImages() != null && !questionDto.getImages().isEmpty()) {
+            for (ImageDto imageDto : questionDto.getImages()) {
+                Image image = new Image();
+                image.setUrl(imageDto.getUrl());
+                image.setFileName(imageDto.getFileName());
+                image.setQuestion(question);
+                question.getImages().add(image);
             }
-
-            Image image = new Image();
-            image.setUrl(imageDto.getUrl());
-            image.setFileName(imageDto.getFileName());
-            image.setQuestion(question);
-            question.getImages().add(image);
         }
+
+        // 질문 저장
+        Question savedQuestion = questionRepository.save(question);
+        return convertToDto(savedQuestion);
     }
 
-    Question savedQuestion = questionRepository.save(question);
-    return convertToDto(savedQuestion);
-    }
+
 
     // 특정 질문 조회
     @Transactional
@@ -141,34 +139,38 @@ public class QuestionService {
     // 질문 업데이트
     @Transactional
     public QuestionDto updateQuestion(Long id, QuestionDto questionDto) {
+        // Question 찾기
         Question question = questionRepository.findById(id)
                 .orElseThrow(() -> new EntityNotFoundException("Question not found"));
 
-        // Update question details
-        question.setTitle(questionDto.getTitle());
-        question.setContent(questionDto.getContent());
-        question.setIsAnonymous(questionDto.getIsAnonymous());
-
-        // Update subject
+        // Subject 찾기
         Subject subject = subjectRepository.findById(questionDto.getSubjectId())
                 .orElseThrow(() -> new EntityNotFoundException("Subject not found"));
         question.setSubject(subject);
 
-        // Update images if provided
+        // Question 세팅
+        question.setTitle(questionDto.getTitle());
+        question.setContent(questionDto.getContent());
+        question.setIsAnonymous(questionDto.getIsAnonymous());
+
+        // 이미지 처리
         if (questionDto.getImages() != null && !questionDto.getImages().isEmpty()) {
-            question.getImages().clear();
+            question.getImages().clear(); // 기존 이미지를 지우고 새 이미지로 업데이트
             for (ImageDto imageDto : questionDto.getImages()) {
                 Image image = new Image();
-                image.setFileName(imageDto.getFileName());
                 image.setUrl(imageDto.getUrl());
+                image.setFileName(imageDto.getFileName());
                 image.setQuestion(question);
                 question.getImages().add(image);
             }
         }
 
+        // 질문 저장
         Question updatedQuestion = questionRepository.save(question);
         return convertToDto(updatedQuestion);
     }
+
+
 
     // 질문 삭제
     @Transactional
@@ -239,8 +241,11 @@ public class QuestionService {
                     ImageDto imageDto = new ImageDto();
                     imageDto.setFileName(image.getFileName());
                     imageDto.setUrl(image.getUrl());
+                    imageDto.setMime(image.getMime());
                     return imageDto;
                 }).collect(Collectors.toList()));
         return questionDto;
     }
+
+
 }
