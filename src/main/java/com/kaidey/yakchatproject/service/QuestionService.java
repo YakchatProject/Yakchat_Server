@@ -240,6 +240,7 @@ public class QuestionService {
                 .map(image -> {
                     ImageDto imageDto = new ImageDto();
                     imageDto.setFileName(image.getFileName());
+                    imageDto.setId(image.getId());
                     imageDto.setUrl(image.getUrl());
                     imageDto.setMime(image.getMime());
                     return imageDto;

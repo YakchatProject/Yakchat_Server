@@ -26,18 +26,17 @@ public class AnswerService {
     private final QuestionRepository questionRepository;
     private final UserRepository userRepository;
     private final LikeRepository likeRepository;
-    private final ImageUtils imageUtils;
+    private final ImageUtils imageUtils = new ImageUtils();
+
 
     @Autowired
     public AnswerService(AnswerRepository answerRepository,
                          QuestionRepository questionRepository,
-                         UserRepository userRepository, LikeRepository likeRepository,
-                         ImageUtils imageUtils) {
+                         UserRepository userRepository, LikeRepository likeRepository) {
         this.answerRepository = answerRepository;
         this.questionRepository = questionRepository;
         this.userRepository = userRepository;
         this.likeRepository = likeRepository;
-        this.imageUtils = imageUtils;
     }
 
     // 답변 생성
@@ -48,13 +47,13 @@ public class AnswerService {
                 .orElseThrow(() -> new EntityNotFoundException("Question not found"));
 
         // User 찾기
-        User user = userRepository.findById(userId)
+        System.out.println("userId: " + userId);
+        User user = userRepository.findById(answerDto.getUserId())
                 .orElseThrow(() -> new EntityNotFoundException("User not found"));
 
         // Answer 객체 생성 및 세팅
         Answer answer = new Answer();
         answer.setContent(answerDto.getContent());
-        answer.setIsAnonymous(answerDto.getIsAnonymous());
         answer.setQuestion(question);
         answer.setUser(user);
 
@@ -87,11 +86,21 @@ public class AnswerService {
     // 특정 질문과 사용자에 대한 답변 조회
     @Transactional
     public List<AnswerDto> getAnswersByQuestionIdAndUserId(Long questionId, Long userId) {
+        Question question = questionRepository.findById(questionId)
+                .orElseThrow(() -> new EntityNotFoundException("Question not found"));
+
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new EntityNotFoundException("User not found"));
+
         List<Answer> answers = answerRepository.findByQuestionIdAndUserIdOrderByCreatedAtDesc(questionId, userId);
+
         if (answers.isEmpty()) {
-            throw new EntityNotFoundException("No answers found for the given question and user");
+            return List.of(); // Return an empty list if no answers are found
         }
-        return answers.stream().map(this::convertToDto).collect(Collectors.toList());
+
+        return answers.stream()
+                .map(this::convertToDto)
+                .collect(Collectors.toList());
     }
 
     // 모든 답변 조회
@@ -111,7 +120,6 @@ public class AnswerService {
 
         // Answer 세팅
         answer.setContent(answerDto.getContent());
-        answer.setIsAnonymous(answerDto.getIsAnonymous()); // 익명 여부 설정
 
         // Question 찾기
         Question question = questionRepository.findById(answerDto.getQuestionId())
@@ -182,10 +190,8 @@ public class AnswerService {
         AnswerDto answerDto = new AnswerDto();
         answerDto.setId(answer.getId());
         answerDto.setContent(answer.getContent());
-        answerDto.setIsAnonymous(answer.getIsAnonymous());
-        answerDto.setUserId(answer.getUser().getId());
-        answerDto.setUserName(answer.getIsAnonymous() ? "" : answer.getUser().getUsername());
         answerDto.setQuestionId(answer.getQuestion().getId());
+        answerDto.setUserId(answer.getUser().getId());
         answerDto.setCreatedAt(answer.getCreatedAt());
         answerDto.setModifiedAt(answer.getModifiedAt());
         answerDto.setLikeCount(answer.getLikes());
@@ -193,6 +199,7 @@ public class AnswerService {
                 .map(image -> {
                     ImageDto imageDto = new ImageDto();
                     imageDto.setFileName(image.getFileName());
+                    imageDto.setId(image.getId());
                     imageDto.setUrl(image.getUrl());
                     return imageDto;
                 }).collect(Collectors.toList()));

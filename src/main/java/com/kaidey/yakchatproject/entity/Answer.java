@@ -22,7 +22,7 @@ public class Answer {
     private String content; // 답변 내용
 
     @Column(nullable = false)
-    private Boolean isAnonymous; // 익명 여부 추가
+    private boolean isAnonymous = false;  // 익명 여부 추가
 
     @ManyToOne // 다대일 관계
     @JoinColumn(name = "question_id", nullable = false)

@@ -35,8 +35,10 @@ public class ImageUtils {
                 System.out.println("Base64 Data without prefix: " + base64Data);
 
 
+                String fileExtension = mime.split("/")[1];
+                System.out.println("File Extension: " + fileExtension);
                 // 파일 이름 설정
-                String fileName = "image_" + UUID.randomUUID();
+                String fileName = "image_" + UUID.randomUUID()+ "." + fileExtension;
 
                 // base64 데이터를 저장하고 URL 반환
                 String imageUrl = saveBase64Image(base64Data, fileName, mime);
@@ -45,6 +47,7 @@ public class ImageUtils {
                 // ImageDto 객체 생성하여 URL과 파일 이름 설정
                 ImageDto imageDto = new ImageDto();
                 imageDto.setFileName(fileName);
+                imageDto.setUrl(imageUrl);
                 imageDto.setMime(mime);
 
                 // 결과 리스트에 추가
@@ -67,6 +70,7 @@ public class ImageUtils {
                 String imageUrl = saveBase64Image(base64Data, fileName, mime );
                 ImageDto imageDto = new ImageDto();
                 imageDto.setFileName(fileName);
+                imageDto.setUrl(imageUrl);
                 imageDto.setMime(mime);
                 imageDtos.add(imageDto);
             }
@@ -94,8 +98,6 @@ public class ImageUtils {
         System.out.println("mimeType Data: " + mime);
 
         // 고정된 MIME 타입과 확장자 사용
-        String fileExtension = mime.split("/")[1];  // 확장자 추출 (예: "png")
-        fileName = fileName + "_" + UUID.randomUUID().toString() + "." + fileExtension;
         File file = new File(uploadDir + "/" + fileName);
 
         // 디렉토리 생성 (없는 경우)
@@ -111,6 +113,6 @@ public class ImageUtils {
             throw new RuntimeException("Failed to save image file", e);
         }
 
-        return FilePathToUrlConverter.convert(file.getAbsolutePath());
+       return fileName;
     }
 }
