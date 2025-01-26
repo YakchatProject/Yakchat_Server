@@ -37,6 +37,3 @@ dependencies {
     implementation 'commons-fileupload:commons-fileupload:1.5'
 }
 
-tasks.named('test') {
-    useJUnitPlatform()
-}
