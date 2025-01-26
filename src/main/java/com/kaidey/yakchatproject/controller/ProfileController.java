@@ -48,11 +48,11 @@ public class ProfileController {
     // 프로필 업데이트 (이미지 및 기타 데이터)
     @PutMapping(value = "/update", consumes = {"multipart/form-data"})
     public ResponseEntity<ProfileDto> updateProfile(
-            @RequestParam("username") String username,
-            @RequestParam("school") String school,
-            @RequestParam("grade") String grade,
-            @RequestParam("age") int age,
-            @RequestParam(value = "images", required = false) List<String> images,
+            @RequestParam(value = "username",required = false) String username,
+            @RequestParam(value = "school",required = false) String school,
+            @RequestParam(value = "grade",required = false) String grade,
+            @RequestParam(value = "age",required = false) Integer age,
+            @RequestParam(value = "images") List<String> images,
             @RequestHeader("Authorization") String token) {
 
         Long userId = jwtTokenProvider.getUserIdFromToken(token.substring(7));

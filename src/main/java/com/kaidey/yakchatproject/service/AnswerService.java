@@ -195,14 +195,7 @@ public class AnswerService {
         answerDto.setCreatedAt(answer.getCreatedAt());
         answerDto.setModifiedAt(answer.getModifiedAt());
         answerDto.setLikeCount(answer.getLikes());
-        answerDto.setImages(answer.getImages().stream()
-                .map(image -> {
-                    ImageDto imageDto = new ImageDto();
-                    imageDto.setFileName(image.getFileName());
-                    imageDto.setId(image.getId());
-                    imageDto.setUrl(image.getUrl());
-                    return imageDto;
-                }).collect(Collectors.toList()));
+        answerDto.setImages(imageUtils.convertToImageDtos(answer.getImages()));
         return answerDto;
     }
 }

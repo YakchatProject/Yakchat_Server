@@ -236,15 +236,8 @@ public class QuestionService {
         questionDto.setUpdatedAt(question.getModifiedAt());
         questionDto.setLikeCount(question.getLikes());
         questionDto.setViewCount(question.getViewCount());
-        questionDto.setImages(question.getImages().stream()
-                .map(image -> {
-                    ImageDto imageDto = new ImageDto();
-                    imageDto.setFileName(image.getFileName());
-                    imageDto.setId(image.getId());
-                    imageDto.setUrl(image.getUrl());
-                    imageDto.setMime(image.getMime());
-                    return imageDto;
-                }).collect(Collectors.toList()));
+        questionDto.setImages(imageUtils.convertToImageDtos(question.getImages()));
+
         return questionDto;
     }
 

@@ -1,5 +1,6 @@
 package com.kaidey.yakchatproject.util;
 
+import com.kaidey.yakchatproject.entity.Image;
 import org.apache.tika.Tika;
 import org.apache.tika.mime.MimeTypeException;
 import org.springframework.beans.factory.annotation.Value;
@@ -115,4 +116,20 @@ public class ImageUtils {
 
        return fileName;
     }
+
+    public List<ImageDto> convertToImageDtos(List<Image> images) {
+        List<ImageDto> imageDtos = new ArrayList<>();
+        for (Image image : images) {
+            ImageDto imageDto = new ImageDto();
+            imageDto.setId(image.getId());
+            imageDto.setFileName(image.getFileName());
+            imageDto.setUrl(image.getUrl());
+            imageDto.setUserId(image.getUser() != null ? image.getUser().getId() : null);
+            imageDto.setAnswerId(image.getAnswer() != null ? image.getAnswer().getId() : null);
+            imageDto.setQuestionId(image.getQuestion() != null ? image.getQuestion().getId() : null);
+            imageDtos.add(imageDto);
+        }
+        return imageDtos;
+    }
+
 }
