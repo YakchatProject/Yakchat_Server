@@ -47,8 +47,12 @@ public class User implements UserDetails {
 
     private LocalDateTime lastLoginAt;
 
-    @Column(nullable = true)
-    private String profileImageUrl;
+//    @Column(nullable = true)
+//    private String profileImageUrl;
+
+    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.EAGER)
+    private List<Image> images = new ArrayList<>();
+
 
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Question> questions = new ArrayList<>();
