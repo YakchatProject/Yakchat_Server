@@ -53,7 +53,7 @@ public class SecurityConfig {
                         .sessionCreationPolicy(SessionCreationPolicy.STATELESS)) // Stateless 세션
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/api/auth/login","/api/auth/register",
-                                "/api/auth/check-username","/api/auth/refresh-token").permitAll()  // 인증 없이 접근 가능
+                                "/api/auth/check-username","/api/auth/refresh-token","/api/auth").permitAll()  // 인증 없이 접근 가능
                         .requestMatchers("/images/**").permitAll()
                         .requestMatchers("/api/answers/**").authenticated()
                         .requestMatchers("/api/questions/**").authenticated()
@@ -70,7 +70,7 @@ public class SecurityConfig {
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
-        configuration.setAllowedOrigins(Arrays.asList("http://localhost:3000","https://endlessly-cuddly-salmon.ngrok-free.app","https://yakchat-front.vercel.app")); // 허용할 출처
+        configuration.setAllowedOrigins(Arrays.asList("http://localhost:3000","https://endlessly-cuddly-salmon.ngrok-free.app","https://yakchat-front.vercel.app","http://ec2-13-209-70-10.ap-northeast-2.compute.amazonaws.com")); // 허용할 출처
         configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS")); // 허용할 HTTP 메서드
         configuration.setAllowCredentials(true); // 자격 증명 허용
         configuration.setAllowedHeaders(Arrays.asList("Authorization", "Content-Type", "ngrok-skip-browser-warning")); // 허용할 헤더에 ngrok-skip-browser-warning 추가
