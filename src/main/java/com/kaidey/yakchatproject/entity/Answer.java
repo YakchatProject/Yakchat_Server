@@ -42,6 +42,14 @@ public class Answer {
 
     private int likes = 0; // 좋아요 수
 
+    @Column(nullable = true)
+    private Integer stackOrder; // 스택 순서
+
+    @ManyToOne
+    @JoinColumn(name = "parent_answer_id", nullable = true)
+    private Answer parentAnswer; // 부모 답변
+
+
     // 수정일 업데이트 메서드
     public void updateModifiedAt() {
         this.modifiedAt = LocalDateTime.now();

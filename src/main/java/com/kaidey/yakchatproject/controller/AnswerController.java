@@ -44,32 +44,57 @@ public class AnswerController {
         this.imageUtils = imageUtils;
     }
 
+
+//    @PostMapping(consumes = {"multipart/form-data"})
+//    public ResponseEntity<AnswerDto> createAnswer(
+//            @RequestParam("content") String content,
+//            @RequestParam("questionId") Long questionId,
+//            @RequestParam(value = "images", required = false) List<String> images,  // List<String>으로 변경
+//            @RequestHeader("Authorization") String token) {
+//
+//        Long userId = jwtTokenProvider.getUserIdFromToken(token.substring(7));
+//        AnswerDto answerDto = new AnswerDto();
+//        answerDto.setContent(content);
+//        answerDto.setQuestionId(questionId);
+//        answerDto.setUserId(userId);
+//
+//        // 이미지 처리 로직을 Service로 위임
+//        if (images != null && !images.isEmpty()) {
+//            try {
+//                answerDto.setImages(imageUtils.processImages(images)); // 이미지 처리 서비스 호출
+//            } catch (MimeTypeException | IllegalArgumentException e) {
+//                return ResponseEntity.status(e instanceof MimeTypeException ? 500 : 400).body(null);
+//            }
+//        }
+//
+//        // 서비스에서 답변을 생성
+//        AnswerDto newAnswer = answerService.createAnswer(answerDto, questionId);
+//        return ResponseEntity.ok(newAnswer);
+//    }
+
     // 답변 생성
     @PostMapping(consumes = {"multipart/form-data"})
-    public ResponseEntity<AnswerDto> createAnswer(
+    public ResponseEntity<AnswerDto> createStackedAnswer(
             @RequestParam("content") String content,
             @RequestParam("questionId") Long questionId,
-            @RequestParam(value = "images", required = false) List<String> images,  // List<String>으로 변경
+            @RequestParam(value = "stackOrder", required = false) Integer stackOrder,
+            @RequestParam(value = "parentAnswerId", required = false) Long parentAnswerId,
+            @RequestParam(value = "images", required = false) List<String> images,
             @RequestHeader("Authorization") String token) {
 
         Long userId = jwtTokenProvider.getUserIdFromToken(token.substring(7));
-        AnswerDto answerDto = new AnswerDto();
-        answerDto.setContent(content);
-        answerDto.setQuestionId(questionId);
-        answerDto.setUserId(userId);
+        AnswerDto answerDto = new AnswerDto(content, questionId, userId, stackOrder, parentAnswerId);
 
-        // 이미지 처리 로직을 Service로 위임
+
         if (images != null && !images.isEmpty()) {
             try {
-                answerDto.setImages(imageUtils.processImages(images)); // 이미지 처리 서비스 호출
-            } catch (MimeTypeException | IllegalArgumentException e) {
-                return ResponseEntity.status(e instanceof MimeTypeException ? 500 : 400).body(null);
+                answerDto.setImages(imageUtils.processImages(images));
+            } catch (Exception e) {
+                return ResponseEntity.status(500).body(null);
             }
         }
 
-        // 서비스에서 답변을 생성
-        AnswerDto newAnswer = answerService.createAnswer(answerDto, questionId);
-        return ResponseEntity.ok(newAnswer);
+        return ResponseEntity.ok(answerService.createStackedAnswer(answerDto));
     }
 
 
@@ -131,34 +156,33 @@ public class AnswerController {
 
 
 
+
     // 답변 업데이트
     @PutMapping(value = "/{id}", consumes = {"multipart/form-data"})
-    public ResponseEntity<AnswerDto> updateAnswer(
+    public ResponseEntity<AnswerDto> updateStackedAnswer(
             @PathVariable Long id,
             @RequestParam("content") String content,
             @RequestParam("questionId") Long questionId,
-            @RequestParam(value = "images", required = false) List<String> images,  // List<String>으로 변경
+            @RequestParam(value = "stackOrder", required = false) Integer stackOrder,
+            @RequestParam(value = "parentAnswerId", required = false) Long parentAnswerId,
+            @RequestParam(value = "images", required = false) List<String> images,
             @RequestHeader("Authorization") String token) {
 
         Long userId = jwtTokenProvider.getUserIdFromToken(token.substring(7));
-        AnswerDto answerDto = new AnswerDto();
-        answerDto.setContent(content);
-        answerDto.setQuestionId(questionId);
-        answerDto.setUserId(userId);
 
-        // 이미지 처리 로직을 Service로 위임
+        AnswerDto answerDto = new AnswerDto(content, questionId, userId, stackOrder, parentAnswerId);
+
         if (images != null && !images.isEmpty()) {
             try {
-                answerDto.setImages(imageUtils.processImages(images)); // 이미지 처리 서비스 호출
-            } catch (MimeTypeException | IllegalArgumentException e) {
-                return ResponseEntity.status(e instanceof MimeTypeException ? 500 : 400).body(null);
+                answerDto.setImages(imageUtils.processImages(images));
+            } catch (Exception e) {
+                return ResponseEntity.status(500).body(null);
             }
         }
 
-        // 서비스에서 답변을 업데이트
-        AnswerDto updatedAnswer = answerService.updateAnswer(id, answerDto);
-        return ResponseEntity.ok(updatedAnswer);
+        return ResponseEntity.ok(answerService.updateStackedAnswer(id, answerDto));
     }
+
 
 
     // 답변 삭제
@@ -189,6 +213,9 @@ public class AnswerController {
         answerService.unlikeAnswer(id, userId);
         return ResponseEntity.ok().build();
     }
+
+
+
 
 
 
