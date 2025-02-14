@@ -33,11 +33,11 @@ public class ImageUtils {
 
             if (!parts[0].contains(";")) {
                 String base64Data = parts[0]; // 전체 데이터를 Base64로 처리
-                System.out.println("Base64 Data without prefix: " + base64Data);
+//                System.out.println("Base64 Data without prefix: " + base64Data);
 
 
                 String fileExtension = mime.split("/")[1];
-                System.out.println("File Extension: " + fileExtension);
+//                System.out.println("File Extension: " + fileExtension);
                 // 파일 이름 설정
                 String fileName = "image_" + UUID.randomUUID()+ "." + fileExtension;
 
@@ -57,7 +57,7 @@ public class ImageUtils {
             else if (parts.length == 2) {
                 // base64 데이터는 parts[1]
                 String base64Data = parts[1];
-                System.out.println("Base64 Data: " + base64Data);
+//                System.out.println("Base64 Data: " + base64Data);
 
 
                 if (base64Data.startsWith("data:image/")) {

@@ -12,10 +12,8 @@ import java.util.ArrayList;
 @Setter
 @NoArgsConstructor
 public class AnswerDto {
-
     private Long id;
     private String content;
-    private Boolean isAnonymous; // 익명 여부
     private Long userId;
     private String userName;
     private Long questionId;
@@ -23,16 +21,11 @@ public class AnswerDto {
     private LocalDateTime createdAt;
     private LocalDateTime modifiedAt;
     private Integer likeCount;
-
-    private Integer stackOrder; // 스택 순서 추가
-    private Long parentAnswerId; // 부모 답변 ID 추가
     private List<AnswerDto> subAnswers = new ArrayList<>();
 
-    public AnswerDto(String content, Long questionId, Long userId, Integer stackOrder, Long parentAnswerId) {
+    public AnswerDto(String content, Long questionId, Long userId) {
         this.content = content;
         this.questionId = questionId;
         this.userId = userId;
-        this.stackOrder = stackOrder;
-        this.parentAnswerId = parentAnswerId;
     }
 }
