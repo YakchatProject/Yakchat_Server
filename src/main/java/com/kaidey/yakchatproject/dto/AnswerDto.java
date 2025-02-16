@@ -4,6 +4,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
+import java.util.Map;
 import java.util.List;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -17,7 +18,7 @@ public class AnswerDto {
     private Long userId;
     private String userName;
     private Long questionId;
-    private List<ImageDto> images;
+    private Map<String, String> images; // ✅ 변경: List<ImageDto> → Map<String, String>
     private LocalDateTime createdAt;
     private LocalDateTime modifiedAt;
     private Integer likeCount;

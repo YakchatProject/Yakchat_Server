@@ -18,8 +18,11 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 import org.apache.tika.mime.MimeTypeException;
-import java.io.File;
+import java.util.LinkedHashMap;
+import java.util.Map;
+import java.util.HashMap;
 
+import java.util.stream.Collectors;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -45,26 +48,58 @@ public class AnswerController {
     }
 
 
+//    @PostMapping(consumes = {"multipart/form-data"})
+//    public ResponseEntity<AnswerDto> createAnswer(
+//            @RequestParam("content") String content,
+//            @RequestParam("questionId") Long questionId,
+//            @RequestParam(value = "images", required = false) List<String> images,
+//            @RequestHeader("Authorization") String token) {
+//
+//        Long userId = jwtTokenProvider.getUserIdFromToken(token.substring(7));
+//        AnswerDto answerDto = new AnswerDto(content, questionId, userId);
+//
+//        if (images != null && !images.isEmpty()) {
+//            try {
+//                answerDto.setImages(imageUtils.processImages(images));
+//            } catch (MimeTypeException | IllegalArgumentException e) {
+//                return ResponseEntity.status(e instanceof MimeTypeException ? 500 : 400).body(null);
+//            }
+//        }
+//
+//        AnswerDto newAnswer = answerService.createAnswer(answerDto, userId);
+//        return ResponseEntity.ok(newAnswer);
+//    }
+
+    public AnswerController(JwtTokenProvider jwtTokenProvider, AnswerService answerService, ImageUtils imageUtils) {
+        this.jwtTokenProvider = jwtTokenProvider;
+        this.answerService = answerService;
+        this.imageUtils = imageUtils;
+    }
+
     @PostMapping(consumes = {"multipart/form-data"})
-    public ResponseEntity<AnswerDto> createAnswer(
+    public ResponseEntity<Map<String, Object>> createAnswer(
             @RequestParam("content") String content,
             @RequestParam("questionId") Long questionId,
-            @RequestParam(value = "images", required = false) List<String> images,
+            @RequestParam(value = "images", required = false) List<MultipartFile> images,
             @RequestHeader("Authorization") String token) {
 
         Long userId = jwtTokenProvider.getUserIdFromToken(token.substring(7));
         AnswerDto answerDto = new AnswerDto(content, questionId, userId);
 
-        if (images != null && !images.isEmpty()) {
-            try {
-                answerDto.setImages(imageUtils.processImages(images));
-            } catch (MimeTypeException | IllegalArgumentException e) {
-                return ResponseEntity.status(e instanceof MimeTypeException ? 500 : 400).body(null);
-            }
-        }
+        try {
+            AnswerDto newAnswer = answerService.createAnswer(answerDto, userId, images);
 
-        AnswerDto newAnswer = answerService.createAnswer(answerDto, userId);
-        return ResponseEntity.ok(newAnswer);
+            Map<String, Object> response = new HashMap<>();
+            response.put("answerId", newAnswer.getId());
+            response.put("content", newAnswer.getContent());
+            response.put("questionId", newAnswer.getQuestionId());
+            response.put("userId", newAnswer.getUserId());
+            response.put("images", newAnswer.getImages()); // ✅ image_1, image_2 형식으로 반환
+
+            return ResponseEntity.ok(response);
+        } catch (Exception e) {
+            return ResponseEntity.status(500).body(null);
+        }
     }
 
 
@@ -127,30 +162,33 @@ public class AnswerController {
 
     // 답변 업데이트
     @PutMapping(value = "/{id}", consumes = {"multipart/form-data"})
-    public ResponseEntity<AnswerDto> updateAnswer(
+    public ResponseEntity<Map<String, Object>> updateAnswer(
             @PathVariable Long id,
             @RequestParam("content") String content,
             @RequestParam("questionId") Long questionId,
-            @RequestParam(value = "images", required = false) List<String> images,  // List<String>으로 변경
+            @RequestParam(value = "images", required = false) List<MultipartFile> images,
+            @RequestParam(value = "deleteImageIds", required = false) List<Long> deleteImageIds, // ✅ 삭제할 이미지 ID 리스트 추가
             @RequestHeader("Authorization") String token) {
 
         Long userId = jwtTokenProvider.getUserIdFromToken(token.substring(7));
         AnswerDto answerDto = new AnswerDto(content, questionId, userId);
 
+        try {
+            AnswerDto updatedAnswer = answerService.updateAnswer(id, answerDto, images, deleteImageIds); // ✅ 삭제할 이미지 ID 전달
 
-        // 이미지 처리 로직을 Service로 위임
-        if (images != null && !images.isEmpty()) {
-            try {
-                answerDto.setImages(imageUtils.processImages(images)); // 이미지 처리 서비스 호출
-            } catch (MimeTypeException | IllegalArgumentException e) {
-                return ResponseEntity.status(e instanceof MimeTypeException ? 500 : 400).body(null);
-            }
+            Map<String, Object> response = new HashMap<>();
+            response.put("answerId", updatedAnswer.getId());
+            response.put("content", updatedAnswer.getContent());
+            response.put("questionId", updatedAnswer.getQuestionId());
+            response.put("userId", updatedAnswer.getUserId());
+            response.put("images", updatedAnswer.getImages()); // ✅ image_1, image_2 형식 반환
+
+            return ResponseEntity.ok(response);
+        } catch (Exception e) {
+            return ResponseEntity.status(500).body(null);
         }
-
-        // 서비스에서 답변을 업데이트
-        AnswerDto updatedAnswer = answerService.updateAnswer(id, answerDto);
-        return ResponseEntity.ok(updatedAnswer);
     }
+
 
 
 

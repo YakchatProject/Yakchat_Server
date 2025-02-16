@@ -56,7 +56,7 @@ public class QuestionController {
         // 이미지 처리 로직을 Service로 위임
         if (images != null && !images.isEmpty()) {
             try {
-                questionDto.setImages(imageUtils.processImages(images));
+                questionDto.setImages(imageUtils.processBaseImages(images));
             } catch (MimeTypeException | IllegalArgumentException e) {
                 return ResponseEntity.status(e instanceof MimeTypeException ? 500 : 400).body(null);
             }
@@ -148,7 +148,7 @@ public class QuestionController {
         // 이미지 처리 로직을 Service로 위임
         if (images != null && !images.isEmpty()) {
             try {
-                questionDto.setImages(imageUtils.processImages(images)); // 이미지 처리 서비스 호출
+                questionDto.setImages(imageUtils.processBaseImages(images)); // 이미지 처리 서비스 호출
             } catch (MimeTypeException | IllegalArgumentException e) {
                 return ResponseEntity.status(e instanceof MimeTypeException ? 500 : 400).body(null);
             }

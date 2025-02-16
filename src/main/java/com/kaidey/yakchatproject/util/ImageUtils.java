@@ -12,6 +12,9 @@ import java.util.UUID;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Arrays;
+import java.util.Map;
+import org.springframework.web.multipart.MultipartFile;
+import java.util.LinkedHashMap;
 
 
 @Component
@@ -22,7 +25,7 @@ public class ImageUtils {
     @Value("${upload.dir}")
     private String uploadDir;
 
-    public List<ImageDto> processImages(List<String> base64Images) throws MimeTypeException {
+    public List<ImageDto> processBaseImages(List<String> base64Images) throws MimeTypeException {
 //        System.out.println("base64Images: " + base64Images);
         List<ImageDto> imageDtos = new ArrayList<>();
         String mime="";
@@ -92,6 +95,16 @@ public class ImageUtils {
         System.out.println("MIME Type: " + mime);
         return imageDtos;
     }
+    public ImageDto processImage(MultipartFile file) throws IOException {
+        String fileName = UUID.randomUUID() + "_" + file.getOriginalFilename();
+        String filePath = uploadDir + fileName;
+        String mimeType = file.getContentType();
+
+        File saveFile = new File(filePath);
+        file.transferTo(saveFile);
+
+        return new ImageDto(fileName, filePath, mimeType);
+    }
 
     public String saveBase64Image(String base64Data, String fileName, String mime) {
         base64Data = base64Data.trim();
@@ -131,5 +144,19 @@ public class ImageUtils {
         }
         return imageDtos;
     }
+
+    public Map<String, String> convertToImageMap(List<Image> images) {
+        Map<String, String> imageMap = new LinkedHashMap<>();
+        if (images != null && !images.isEmpty()) {
+            int index = 1;
+            for (Image image : images) {
+                imageMap.put("image_" + index++, image.getUrl()); // ✅ "image_1", "image_2" 형식
+            }
+        }
+        return imageMap;
+    }
+
+
+
 
 }
