@@ -79,39 +79,39 @@ public class AnswerController {
     }
 
     // 특정 질문과 사용자에 대한 답변 조회
-    @GetMapping("/question/{questionId}/user")
-    public ResponseEntity<?> getAnswersByQuestionIdAndUserId(
-            @PathVariable Long questionId,
-            @AuthenticationPrincipal UserDetails userDetails) {
-        try {
-            if (userDetails == null) {
-                logger.warn("Authentication failed: UserDetails is null.");
-                return ResponseEntity.status(HttpStatus.FORBIDDEN)
-                        .body("User is not authenticated.");
-            }
-
-            Long userId;
-            if (userDetails instanceof User) {
-                userId = ((User) userDetails).getId();
-            } else {
-                logger.error("UserDetails is not an instance of User.");
-                return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                        .body("Internal server error.");
-            }
-            logger.info("Fetching answers for questionId: {} and userId: {}", questionId, userId);
-
-            List<AnswerDto> answerDtos = answerService.getAnswersByQuestionIdAndUserId(questionId, userId);
-            return ResponseEntity.ok(answerDtos);
-        } catch (IllegalArgumentException e) {
-            logger.error("Invalid argument: {}", e.getMessage());
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                    .body("Invalid argument: " + e.getMessage());
-        } catch (Exception e) {
-            logger.error("Unexpected error occurred while fetching answers: {}", e.getMessage(), e);
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body("An unexpected error occurred.");
-        }
-    }
+//    @GetMapping("/question/{questionId}/user")
+//    public ResponseEntity<?> getAnswersByQuestionIdAndUserId(
+//            @PathVariable Long questionId,
+//            @AuthenticationPrincipal UserDetails userDetails) {
+//        try {
+//            if (userDetails == null) {
+//                logger.warn("Authentication failed: UserDetails is null.");
+//                return ResponseEntity.status(HttpStatus.FORBIDDEN)
+//                        .body("User is not authenticated.");
+//            }
+//
+//            Long userId;
+//            if (userDetails instanceof User) {
+//                userId = ((User) userDetails).getId();
+//            } else {
+//                logger.error("UserDetails is not an instance of User.");
+//                return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+//                        .body("Internal server error.");
+//            }
+//            logger.info("Fetching answers for questionId: {} and userId: {}", questionId, userId);
+//
+//            List<AnswerDto> answerDtos = answerService.getAnswersByQuestionIdAndUserId(questionId, userId);
+//            return ResponseEntity.ok(answerDtos);
+//        } catch (IllegalArgumentException e) {
+//            logger.error("Invalid argument: {}", e.getMessage());
+//            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+//                    .body("Invalid argument: " + e.getMessage());
+//        } catch (Exception e) {
+//            logger.error("Unexpected error occurred while fetching answers: {}", e.getMessage(), e);
+//            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+//                    .body("An unexpected error occurred.");
+//        }
+//    }
     // 모든 답변 조회
     @GetMapping
     public ResponseEntity<List<AnswerDto>> getAllAnswers() {
