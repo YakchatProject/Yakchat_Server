@@ -3,7 +3,7 @@ package com.kaidey.yakchatproject.dto;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
-
+import java.util.Map;
 import java.util.List;
 import java.time.LocalDateTime;
 
@@ -18,12 +18,15 @@ public class AnswerDto {
     private Long userId;
     private String userName;
     private Long questionId;
-    private List<ImageDto> images; // 답변에 포함할 이미지 목록
-    private LocalDateTime createdAt;
+    private Map<String, String> images;    private LocalDateTime createdAt;
     private LocalDateTime modifiedAt;
     private Integer likeCount;
 
-
+    public AnswerDto(String content, Long questionId, Long userId) {
+        this.content = content;
+        this.questionId = questionId;
+        this.userId = userId;
+    }
 
 //    작성 날짜: 답변 등록 시간 (LocalDateTime createdAt)
 //    수정 날짜: 답변 수정 시간 (LocalDateTime updatedAt)

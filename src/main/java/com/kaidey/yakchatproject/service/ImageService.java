@@ -1,14 +1,27 @@
 package com.kaidey.yakchatproject.service;
 
+import com.kaidey.yakchatproject.entity.Answer;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import com.kaidey.yakchatproject.repository.ImageRepository;
 import com.kaidey.yakchatproject.entity.Image;
 import com.kaidey.yakchatproject.dto.ImageDto;
+import java.util.Map;
+import java.util.List;
+import java.io.IOException;
+import java.util.UUID;
+import org.springframework.web.multipart.MultipartFile;
+import java.io.File;
+import java.util.ArrayList;
 
 import java.util.Optional;
 
 @Service
 public class ImageService {
+
+
+    @Value("${upload.dir}")
+    private String uploadDir;
 
     private final ImageRepository imageRepository;
 
@@ -33,4 +46,36 @@ public class ImageService {
             throw new RuntimeException("이미지를 찾을 수 없습니다. ID: " + id);
         }
     }
+
+    public List<Image> saveImages(List<MultipartFile> files,  Answer answer) throws IOException {
+        List<Image> imageList = new ArrayList<>();
+
+        for (int i = 0; i < files.size(); i++) {
+            MultipartFile file = files.get(i);
+            String fileName = UUID.randomUUID() + "_" + file.getOriginalFilename();
+            String filePath = uploadDir + fileName;
+            String mimeType = file.getContentType();
+
+            // 파일 저장
+            File saveFile = new File(uploadDir + "/" + fileName);
+            try {
+                file.transferTo(saveFile);
+            } catch (IOException e) {
+                throw new RuntimeException("파일 저장 실패: " + filePath, e);
+            }
+
+
+            Image image = new Image();
+            image.setFileName(fileName);
+            image.setUrl(fileName);
+            image.setMime(mimeType);
+            image.setAnswer(answer);
+
+            imageList.add(image);
+        }
+
+        // 모든 이미지 저장
+        return imageRepository.saveAll(imageList);
+    }
+
 }

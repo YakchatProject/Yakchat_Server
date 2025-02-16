@@ -11,8 +11,8 @@ import java.util.Base64;
 import java.util.UUID;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Arrays;
-
+import java.util.Map;
+import java.util.LinkedHashMap;
 
 @Component
 public class ImageUtils {
@@ -115,6 +115,17 @@ public class ImageUtils {
         }
 
        return fileName;
+    }
+
+    public Map<String, String> convertToImageMap(List<Image> images) {
+        Map<String, String> imageMap = new LinkedHashMap<>();
+        if (images != null && !images.isEmpty()) {
+            int index = 1;
+            for (Image image : images) {
+                imageMap.put("image_" + index++, image.getUrl());
+            }
+        }
+        return imageMap;
     }
 
     public List<ImageDto> convertToImageDtos(List<Image> images) {
