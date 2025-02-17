@@ -15,6 +15,7 @@ import java.util.Map;
 import java.util.stream.Collectors;
 import org.springframework.web.multipart.MultipartFile;
 import java.io.IOException;
+import org.springframework.util.MultiValueMap;
 
 
 
@@ -110,7 +111,7 @@ public class AnswerService {
 
     // 답변 업데이트
     @Transactional
-    public AnswerDto updateAnswer(Long id, AnswerDto answerDto, List<MultipartFile> images, List<Long> deleteImageIds) throws IOException {
+    public AnswerDto updateAnswer(Long id, AnswerDto answerDto, MultiValueMap<String, MultipartFile> images, List<Long> deleteImageIds) throws IOException {
         // Answer 찾기
         Answer answer = answerRepository.findById(id)
                 .orElseThrow(() -> new EntityNotFoundException("Answer not found with id: " + id));

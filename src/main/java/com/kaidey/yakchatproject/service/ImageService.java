@@ -12,7 +12,10 @@ import java.io.IOException;
 import java.util.UUID;
 import org.springframework.web.multipart.MultipartFile;
 import java.io.File;
+import java.util.Objects;
+import java.util.Comparator;
 import java.util.ArrayList;
+import org.springframework.util.MultiValueMap;
 
 import java.util.Optional;
 
@@ -47,23 +50,24 @@ public class ImageService {
         }
     }
 
-    public List<Image> saveImages(List<MultipartFile> files,  Answer answer) throws IOException {
+
+    public List<Image> saveImages(List<MultipartFile> files, Answer answer) throws IOException {
         List<Image> imageList = new ArrayList<>();
 
         for (int i = 0; i < files.size(); i++) {
             MultipartFile file = files.get(i);
-            String fileName = UUID.randomUUID() + "_" + file.getOriginalFilename();
-            String filePath = uploadDir + fileName;
-            String mimeType = file.getContentType();
 
-            // 파일 저장
-            File saveFile = new File(uploadDir + "/" + fileName);
-            try {
-                file.transferTo(saveFile);
-            } catch (IOException e) {
-                throw new RuntimeException("파일 저장 실패: " + filePath, e);
+            if (file == null || file.isEmpty()) {
+                imageList.add(null);
+                continue;
             }
 
+            String fileName = UUID.randomUUID() + "_" + file.getOriginalFilename();
+            String filePath =  uploadDir + "/" + fileName;
+            String mimeType = file.getContentType();
+
+            File saveFile = new File(filePath);
+            file.transferTo(saveFile);
 
             Image image = new Image();
             image.setFileName(fileName);
@@ -74,8 +78,42 @@ public class ImageService {
             imageList.add(image);
         }
 
-        // 모든 이미지 저장
-        return imageRepository.saveAll(imageList);
+        return imageRepository.saveAll(imageList.stream().filter(Objects::nonNull).toList());
     }
+
+
+
+
+//    public List<Image> saveImages(List<MultipartFile> files,  Answer answer) throws IOException {
+//        List<Image> imageList = new ArrayList<>();
+//
+//        for (int i = 0; i < files.size(); i++) {
+//            MultipartFile file = files.get(i);
+//            if (file.isEmpty()) continue;
+//            String fileName = UUID.randomUUID() + "_" + file.getOriginalFilename();
+//            String filePath = uploadDir + fileName;
+//            String mimeType = file.getContentType();
+//
+//            // 파일 저장
+//            File saveFile = new File(uploadDir + "/" + fileName);
+//            try {
+//                file.transferTo(saveFile);
+//            } catch (IOException e) {
+//                throw new RuntimeException("파일 저장 실패: " + filePath, e);
+//            }
+//
+//
+//            Image image = new Image();
+//            image.setFileName(fileName);
+//            image.setUrl(fileName);
+//            image.setMime(mimeType);
+//            image.setAnswer(answer);
+//
+//            imageList.add(image);
+//        }
+//
+//        // 모든 이미지 저장
+//        return imageRepository.saveAll(imageList);
+//    }
 
 }

@@ -19,6 +19,7 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 import java.util.Map;
 import java.util.HashMap;
+import org.springframework.util.MultiValueMap;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -48,7 +49,7 @@ public class AnswerController {
     public ResponseEntity<Map<String, Object>> createAnswer(
             @RequestParam("content") String content,
             @RequestParam("questionId") Long questionId,
-            @RequestParam(value = "images", required = false) List<MultipartFile> images, // ✅ List<MultipartFile>로 변경
+            @RequestParam(value = "images", required = false) List<MultipartFile> images,
             @RequestHeader("Authorization") String token) {
 
         Long userId = jwtTokenProvider.getUserIdFromToken(token.substring(7));
@@ -135,8 +136,8 @@ public class AnswerController {
             @PathVariable Long id,
             @RequestParam("content") String content,
             @RequestParam("questionId") Long questionId,
-            @RequestParam(value = "images", required = false) List<MultipartFile> images, // ✅ List<MultipartFile>로 변경
-            @RequestParam(value = "deleteImageIds", required = false) List<Long> deleteImageIds, // ✅ 삭제할 이미지 ID도 여러 개 받을 수 있도록 변경
+            @RequestParam(value = "images", required = false) List<MultipartFile> images,
+            @RequestParam(value = "deleteImageIds", required = false) List<Long> deleteImageIds,
             @RequestHeader("Authorization") String token) {
 
         Long userId = jwtTokenProvider.getUserIdFromToken(token.substring(7));

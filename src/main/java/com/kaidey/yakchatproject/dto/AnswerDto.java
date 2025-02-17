@@ -18,7 +18,8 @@ public class AnswerDto {
     private Long userId;
     private String userName;
     private Long questionId;
-    private Map<String, String> images;    private LocalDateTime createdAt;
+    private Map<String, String> images;
+    private LocalDateTime createdAt;
     private LocalDateTime modifiedAt;
     private Integer likeCount;
 
