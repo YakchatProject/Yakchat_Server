@@ -117,14 +117,18 @@ public class ImageUtils {
        return fileName;
     }
 
-    public Map<String, String> convertToImageMap(List<Image> images) {
-        Map<String, String> imageMap = new LinkedHashMap<>();
-        if (images != null && !images.isEmpty()) {
-            int index = 1;
+    public Map<Integer, String> convertToImageMap(List<Image> images) {
+        Map<Integer, String> imageMap = new LinkedHashMap<>();
+
+        if (images != null) {
             for (Image image : images) {
-                imageMap.put("image_" + index++, image.getUrl());
+                if (image == null) {
+                    continue;
+                }
+                imageMap.put(image.getStepIndex(), image.getFileName()); // ✅ STEP 인덱스에 맞게 이미지 매칭
             }
         }
+
         return imageMap;
     }
 

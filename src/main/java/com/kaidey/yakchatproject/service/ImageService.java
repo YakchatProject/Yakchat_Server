@@ -74,6 +74,7 @@ public class ImageService {
             image.setUrl(fileName);
             image.setMime(mimeType);
             image.setAnswer(answer);
+            image.setStepIndex(i);
 
             imageList.add(image);
         }

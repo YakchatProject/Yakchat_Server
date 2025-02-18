@@ -15,7 +15,7 @@ import java.util.Map;
 import java.util.stream.Collectors;
 import org.springframework.web.multipart.MultipartFile;
 import java.io.IOException;
-import org.springframework.util.MultiValueMap;
+import java.util.LinkedHashMap;
 
 
 
@@ -46,30 +46,27 @@ public class AnswerService {
     // 답변 생성
     @Transactional
     public AnswerDto createAnswer(AnswerDto answerDto, Long userId, List<MultipartFile> images) throws IOException {
-        // Question 찾기
         Question question = questionRepository.findById(answerDto.getQuestionId())
-                .orElseThrow(() -> new EntityNotFoundException("Question not found with id: " + answerDto.getQuestionId()));
+                .orElseThrow(() -> new EntityNotFoundException("Question not found"));
 
-        // User 찾기
         User user = userRepository.findById(userId)
-                .orElseThrow(() -> new EntityNotFoundException("User not found with id: " + userId));
+                .orElseThrow(() -> new EntityNotFoundException("User not found"));
 
-        // 답변 생성
         Answer answer = new Answer();
         answer.setContent(answerDto.getContent());
         answer.setQuestion(question);
         answer.setUser(user);
 
-        // 먼저 답변을 저장 (이미지와 연결을 위해 ID 필요)
         Answer savedAnswer = answerRepository.save(answer);
 
-        if (images != null && !images.isEmpty()) {
+        if (images != null) {
             List<Image> savedImages = imageService.saveImages(images, savedAnswer);
             savedAnswer.setImages(savedImages);
         }
 
         return convertToDto(savedAnswer);
     }
+
 
 
 
@@ -111,7 +108,7 @@ public class AnswerService {
 
     // 답변 업데이트
     @Transactional
-    public AnswerDto updateAnswer(Long id, AnswerDto answerDto, MultiValueMap<String, MultipartFile> images, List<Long> deleteImageIds) throws IOException {
+    public AnswerDto updateAnswer(Long id, AnswerDto answerDto,  List<MultipartFile> images, List<Long> deleteImageIds) throws IOException {
         // Answer 찾기
         Answer answer = answerRepository.findById(id)
                 .orElseThrow(() -> new EntityNotFoundException("Answer not found with id: " + id));
@@ -199,7 +196,14 @@ public class AnswerService {
         answerDto.setModifiedAt(answer.getModifiedAt());
         answerDto.setLikeCount(answer.getLikes());
 //        answerDto.setSubAnswers(new ArrayList<>());
-        answerDto.setImages(imageUtils.convertToImageMap(answer.getImages()));
+        Map<Integer, String> imageMap = imageUtils.convertToImageMap(answer.getImages());
+        Map<String, String> finalImageMap = new LinkedHashMap<>();
+
+        for (Map.Entry<Integer, String> entry : imageMap.entrySet()) {
+            finalImageMap.put(String.valueOf(entry.getKey()), entry.getValue());
+        }
+
+        answerDto.setImages(finalImageMap);
 
         return answerDto;
     }

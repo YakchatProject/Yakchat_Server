@@ -33,4 +33,6 @@ public class Image {
     @ManyToOne // 다대일 관계
     @JoinColumn(name = "user_id", nullable = true)
     private User user; // 연관된 사용자 (nullable)
+
+    private int stepIndex;
 }

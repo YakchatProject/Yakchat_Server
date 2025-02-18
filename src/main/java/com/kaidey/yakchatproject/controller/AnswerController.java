@@ -63,7 +63,7 @@ public class AnswerController {
             response.put("content", newAnswer.getContent());
             response.put("questionId", newAnswer.getQuestionId());
             response.put("userId", newAnswer.getUserId());
-            response.put("images", newAnswer.getImages()); // ✅ image_1, image_2 형식 반환
+            response.put("images", newAnswer.getImages());
 
             return ResponseEntity.ok(response);
         } catch (Exception e) {
