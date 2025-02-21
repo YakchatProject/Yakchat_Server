@@ -195,16 +195,10 @@ public class AnswerService {
         answerDto.setCreatedAt(answer.getCreatedAt());
         answerDto.setModifiedAt(answer.getModifiedAt());
         answerDto.setLikeCount(answer.getLikes());
-//        answerDto.setSubAnswers(new ArrayList<>());
-        Map<Integer, String> imageMap = imageUtils.convertToImageMap(answer.getImages());
-        Map<String, String> finalImageMap = new LinkedHashMap<>();
-
-        for (Map.Entry<Integer, String> entry : imageMap.entrySet()) {
-            finalImageMap.put(String.valueOf(entry.getKey()), entry.getValue());
-        }
-
-        answerDto.setImages(finalImageMap);
+        int totalSteps = answer.getContent().split("\n\n|\r\n\r\n").length;
+        answerDto.setImages(imageUtils.convertToImageMap(answer.getImages(), totalSteps));
 
         return answerDto;
     }
+
 }

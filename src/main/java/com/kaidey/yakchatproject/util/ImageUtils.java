@@ -117,20 +117,39 @@ public class ImageUtils {
        return fileName;
     }
 
-    public Map<Integer, String> convertToImageMap(List<Image> images) {
-        Map<Integer, String> imageMap = new LinkedHashMap<>();
+//    public Map<Integer, String> convertToImageMap(List<Image> images) {
+//        Map<Integer, String> imageMap = new LinkedHashMap<>();
+//
+//        if (images != null) {
+//            for (Image image : images) {
+//                if (image == null) {
+//                    continue;
+//                }
+//                imageMap.put(image.getStepIndex(), image.getFileName()); //  STEP 인덱스에 맞게 이미지 매칭
+//            }
+//        }
+//
+//        return imageMap;
+//    }
+    public Map<String, String> convertToImageMap(List<Image> images, int totalSteps) {
+        Map<String, String> imageMap = new LinkedHashMap<>();
 
-        if (images != null) {
-            for (Image image : images) {
-                if (image == null) {
-                    continue;
-                }
-                imageMap.put(image.getStepIndex(), image.getFileName()); // ✅ STEP 인덱스에 맞게 이미지 매칭
+        //  모든 STEP을 `null`로 초기화하여 누락 방지
+        for (int i = 0; i < totalSteps; i++) {
+            imageMap.put(String.valueOf(i), null);
+        }
+        System.out.println("step:"+totalSteps);
+
+        //  실제 이미지가 있는 STEP에만 값을 덮어쓰기
+        for (Image image : images) {
+            if (image != null) {
+                imageMap.put(String.valueOf(image.getStepIndex()), image.getFileName());
             }
         }
 
         return imageMap;
     }
+
 
     public List<ImageDto> convertToImageDtos(List<Image> images) {
         List<ImageDto> imageDtos = new ArrayList<>();

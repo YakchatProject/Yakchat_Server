@@ -70,9 +70,6 @@ public class QuestionController {
 
 
 
-
-
-
     // 질문 조회
     @GetMapping("/{id}")
     public ResponseEntity<QuestionDto> getQuestionById(@PathVariable Long id) {
