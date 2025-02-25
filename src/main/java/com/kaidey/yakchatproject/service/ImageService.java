@@ -57,8 +57,7 @@ public class ImageService {
         for (int i = 0; i < files.size(); i++) {
             MultipartFile file = files.get(i);
 
-            if (file == null || file.isEmpty()) {
-                imageList.add(null);
+            if (file.isEmpty()) {
                 continue;
             }
 

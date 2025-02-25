@@ -56,7 +56,7 @@ public class AnswerController {
         AnswerDto answerDto = new AnswerDto(content, questionId, userId);
 
         try {
-            AnswerDto newAnswer = answerService.createAnswer(answerDto, userId, images);
+            AnswerDto newAnswer = answerService.createAnswer(answerDto, images);
 
             Map<String, Object> response = new HashMap<>();
             response.put("answerId", newAnswer.getId());

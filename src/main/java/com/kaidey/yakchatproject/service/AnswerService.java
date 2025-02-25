@@ -1,10 +1,13 @@
 package com.kaidey.yakchatproject.service;
 
+import com.kaidey.yakchatproject.controller.AnswerController;
 import com.kaidey.yakchatproject.dto.AnswerDto;
 import com.kaidey.yakchatproject.dto.ImageDto;
 import com.kaidey.yakchatproject.entity.*;
 import com.kaidey.yakchatproject.exception.EntityNotFoundException;
 import com.kaidey.yakchatproject.repository.*;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -29,6 +32,7 @@ public class AnswerService {
     private final ImageUtils imageUtils = new ImageUtils();
     private final ImageRepository imageRepository;
     private final ImageService imageService;
+    private static final Logger log = LoggerFactory.getLogger(AnswerController.class);
 
 
     @Autowired
@@ -45,27 +49,37 @@ public class AnswerService {
 
     // 답변 생성
     @Transactional
-    public AnswerDto createAnswer(AnswerDto answerDto, Long userId, List<MultipartFile> images) throws IOException {
+    public AnswerDto createAnswer(AnswerDto answerDto, List<MultipartFile> images) throws IOException {
+        // Question과 User 찾기
         Question question = questionRepository.findById(answerDto.getQuestionId())
                 .orElseThrow(() -> new EntityNotFoundException("Question not found"));
 
-        User user = userRepository.findById(userId)
+        User user = userRepository.findById(answerDto.getUserId())
                 .orElseThrow(() -> new EntityNotFoundException("User not found"));
 
+        // Answer 객체 생성
         Answer answer = new Answer();
         answer.setContent(answerDto.getContent());
         answer.setQuestion(question);
         answer.setUser(user);
 
+        // 이미지가 있으면 미리 리스트에 추가
+        List<Image> imageList = new ArrayList<>();
+        if (images != null && !images.isEmpty()) {
+            imageList = imageService.saveImages(images, answer);
+            answer.setImages(imageList);
+        }
+
+        // Answer 저장
         Answer savedAnswer = answerRepository.save(answer);
 
-        if (images != null) {
-            List<Image> savedImages = imageService.saveImages(images, savedAnswer);
-            savedAnswer.setImages(savedImages);
-        }
+        log.info("Saved answer ID: {}, Images count: {}", savedAnswer.getId(), savedAnswer.getImages() != null ? savedAnswer.getImages().size() : "null");
 
         return convertToDto(savedAnswer);
     }
+
+
+
 
 
 
