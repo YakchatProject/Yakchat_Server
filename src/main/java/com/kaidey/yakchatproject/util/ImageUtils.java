@@ -117,20 +117,7 @@ public class ImageUtils {
        return fileName;
     }
 
-//    public Map<Integer, String> convertToImageMap(List<Image> images) {
-//        Map<Integer, String> imageMap = new LinkedHashMap<>();
-//
-//        if (images != null) {
-//            for (Image image : images) {
-//                if (image == null) {
-//                    continue;
-//                }
-//                imageMap.put(image.getStepIndex(), image.getFileName()); //  STEP 인덱스에 맞게 이미지 매칭
-//            }
-//        }
-//
-//        return imageMap;
-//    }
+
     public Map<String, String> convertToImageMap(List<Image> images, int totalSteps) {
         Map<String, String> imageMap = new LinkedHashMap<>();
 

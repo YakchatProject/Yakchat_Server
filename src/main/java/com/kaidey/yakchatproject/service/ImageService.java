@@ -83,37 +83,4 @@ public class ImageService {
 
 
 
-
-//    public List<Image> saveImages(List<MultipartFile> files,  Answer answer) throws IOException {
-//        List<Image> imageList = new ArrayList<>();
-//
-//        for (int i = 0; i < files.size(); i++) {
-//            MultipartFile file = files.get(i);
-//            if (file.isEmpty()) continue;
-//            String fileName = UUID.randomUUID() + "_" + file.getOriginalFilename();
-//            String filePath = uploadDir + fileName;
-//            String mimeType = file.getContentType();
-//
-//            // 파일 저장
-//            File saveFile = new File(uploadDir + "/" + fileName);
-//            try {
-//                file.transferTo(saveFile);
-//            } catch (IOException e) {
-//                throw new RuntimeException("파일 저장 실패: " + filePath, e);
-//            }
-//
-//
-//            Image image = new Image();
-//            image.setFileName(fileName);
-//            image.setUrl(fileName);
-//            image.setMime(mimeType);
-//            image.setAnswer(answer);
-//
-//            imageList.add(image);
-//        }
-//
-//        // 모든 이미지 저장
-//        return imageRepository.saveAll(imageList);
-//    }
-
 }
