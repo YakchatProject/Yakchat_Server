@@ -168,6 +168,13 @@ public class AnswerController {
         return ResponseEntity.noContent().build();
     }
 
+    // 답변 채택
+    @PostMapping("/{questionId}/accept/{answerId}")
+    public String acceptAnswer(@PathVariable Long questionId, @PathVariable Long answerId, @AuthenticationPrincipal User user) {
+        answerService.acceptAnswer(questionId, answerId, user);
+        return "답변이 채택되었습니다.";
+    }
+
     @GetMapping("/{id}/likeCount")
     public ResponseEntity<Long> getAnswerLikeCount(@PathVariable Long id) {
         long likeCount = answerService.getAnswerLikeCount(id);

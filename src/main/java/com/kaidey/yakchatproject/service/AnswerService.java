@@ -32,19 +32,23 @@ public class AnswerService {
     private final ImageUtils imageUtils = new ImageUtils();
     private final ImageRepository imageRepository;
     private final ImageService imageService;
+    private final UserService userService;
     private static final Logger log = LoggerFactory.getLogger(AnswerController.class);
 
 
     @Autowired
     public AnswerService(AnswerRepository answerRepository,
                          QuestionRepository questionRepository,
-                         UserRepository userRepository, LikeRepository likeRepository, ImageRepository imageRepository, ImageService imageService) {
+                         UserRepository userRepository, LikeRepository likeRepository,
+                         ImageRepository imageRepository, ImageService imageService,
+                         UserService userService) {
         this.answerRepository = answerRepository;
         this.questionRepository = questionRepository;
         this.userRepository = userRepository;
         this.likeRepository = likeRepository;
         this.imageRepository = imageRepository;
         this.imageService = imageService;
+        this.userService = userService;
     }
 
     // 답변 생성
@@ -174,6 +178,31 @@ public class AnswerService {
     }
 
     @Transactional
+    public void acceptAnswer(Long questionId, Long answerId, User user) {
+        Question question = questionRepository.findById(questionId)
+                .orElseThrow(() -> new IllegalArgumentException("해당 질문이 존재하지 않습니다."));
+
+        if (!question.getUser().getId().equals(user.getId())) {
+            throw new IllegalStateException("질문 작성자만 답변을 채택할 수 있습니다.");
+        }
+
+        // 이미 채택된 답변이 있는지 확인
+        if (answerRepository.existsByQuestionIdAndIsAcceptedTrue(questionId)) {
+            throw new IllegalStateException("이미 채택된 답변이 있습니다.");
+        }
+
+        Answer answer = answerRepository.findById(answerId)
+                .orElseThrow(() -> new IllegalArgumentException("해당 답변이 존재하지 않습니다."));
+
+        answer.setIsAccepted(true);
+        answerRepository.save(answer);
+
+        // 답변 작성자의 채택 횟수 증가 및 등급 업데이트
+        User answerUser = answer.getUser();
+        userService.updateUserActivity(answerUser, 0, 1, 0, 0, 0);
+    }
+
+    @Transactional
     public void likeAnswer(Long answerId, Long userId) {
         Answer answer = answerRepository.findById(answerId)
                 .orElseThrow(() -> new EntityNotFoundException("Answer not found"));
@@ -209,6 +238,7 @@ public class AnswerService {
         answerDto.setCreatedAt(answer.getCreatedAt());
         answerDto.setModifiedAt(answer.getModifiedAt());
         answerDto.setLikeCount(answer.getLikes());
+        answerDto.setAccepted(answer.getIsAccepted());
         int totalSteps = answer.getContent().split("\n\n|\r\n\r\n").length;
         answerDto.setImages(imageUtils.convertToImageMap(answer.getImages(), totalSteps));
 

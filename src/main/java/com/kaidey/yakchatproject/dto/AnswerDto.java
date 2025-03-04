@@ -13,20 +13,22 @@ import java.time.LocalDateTime;
 public class AnswerDto {
 
     private Long id;
-    private String content;
+    private String content; //내용
+    private boolean isAccepted; //채탣
     private Boolean isAnonymous; // 익명 여부 추가
     private Long userId;
     private String userName;
     private Long questionId;
     private Map<String, String> images;
-    private LocalDateTime createdAt;
-    private LocalDateTime modifiedAt;
+    private LocalDateTime createdAt; //생성 날짜
+    private LocalDateTime modifiedAt; //수정 날짜
     private Integer likeCount;
 
-    public AnswerDto(String content, Long questionId, Long userId) {
+    public AnswerDto(String content, Long questionId, Long userId, boolean isAccepted) {
         this.content = content;
         this.questionId = questionId;
         this.userId = userId;
+        this.isAccepted = isAccepted;
     }
 
 //    작성 날짜: 답변 등록 시간 (LocalDateTime createdAt)

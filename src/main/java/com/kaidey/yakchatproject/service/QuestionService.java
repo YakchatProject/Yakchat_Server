@@ -19,6 +19,7 @@ import java.util.ArrayList;
 import java.util.stream.Collectors;
 import org.apache.tika.mime.MimeTypeException;
 import com.kaidey.yakchatproject.util.ImageUtils;
+import com.kaidey.yakchatproject.service.UserService;
 
 
 @Service
@@ -28,15 +29,17 @@ public class QuestionService {
     private final SubjectRepository subjectRepository;
     private final UserRepository userRepository;
     private final LikeRepository likeRepository;
+    private final UserService userService;
     private final ImageUtils imageUtils = new ImageUtils();
 
     @Autowired
     public QuestionService(QuestionRepository questionRepository, SubjectRepository subjectRepository,
-                           UserRepository userRepository, LikeRepository likeRepository) {
+                           UserRepository userRepository, LikeRepository likeRepository,UserService userService) {
         this.questionRepository = questionRepository;
         this.subjectRepository = subjectRepository;
         this.userRepository = userRepository;
         this.likeRepository = likeRepository;
+        this.userService = userService;
     }
 
     // 질문 생성
@@ -56,6 +59,7 @@ public class QuestionService {
         question.setIsAnonymous(questionDto.getIsAnonymous());
         question.setSubject(subject);
         question.setUser(user);
+        userService.updateUserActivity(user, 1, 0, 0, 0, 0);
 
         // 이미지 처리
         if (questionDto.getImages() != null && !questionDto.getImages().isEmpty()) {

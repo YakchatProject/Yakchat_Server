@@ -8,11 +8,10 @@ import lombok.Setter;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 import com.kaidey.yakchatproject.entity.enums.RoleType;
+import com.kaidey.yakchatproject.entity.enums.GradeType;
+
 import java.time.LocalDateTime;
-import java.util.Collection;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 
 @Entity
 @Getter
@@ -34,7 +33,7 @@ public class User implements UserDetails {
     private String school;
 
     @Column(nullable = false)
-    private String grade;
+    private String grade; // 학교 학년
 
     @Column(nullable = false)
     private Integer age;
@@ -47,12 +46,8 @@ public class User implements UserDetails {
 
     private LocalDateTime lastLoginAt;
 
-//    @Column(nullable = true)
-//    private String profileImageUrl;
-
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.EAGER)
     private List<Image> images = new ArrayList<>();
-
 
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Question> questions = new ArrayList<>();
@@ -68,6 +63,16 @@ public class User implements UserDetails {
 
     @ElementCollection(fetch = FetchType.EAGER)
     private List<String> authorities = new ArrayList<>();
+
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
+    private GradeType userGrade = GradeType.GRAY; // 기본 등급
+
+    private int questionCount = 0;
+    private int acceptedCount = 0;
+    private int likeCount = 0;
+    private int purchasedMaterialCount = 0;
+    private int soldMaterialCount = 0;
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {

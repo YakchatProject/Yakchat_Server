@@ -4,24 +4,35 @@ import com.kaidey.yakchatproject.dto.UserDto;
 import com.kaidey.yakchatproject.entity.User;
 import com.kaidey.yakchatproject.repository.UserRepository;
 import com.kaidey.yakchatproject.security.JwtTokenProvider;
-import org.springframework.beans.factory.annotation.Autowired;
+import com.kaidey.yakchatproject.entity.enums.RoleType;
+import com.kaidey.yakchatproject.entity.enums.GradeType;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
-import com.kaidey.yakchatproject.entity.enums.RoleType;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.*;
 
 @Service
 public class UserService {
 
-    @Autowired
-    private UserRepository userRepository;
 
-    @Autowired
-    private PasswordEncoder passwordEncoder;
+    private final UserRepository userRepository;
 
-    @Autowired
-    private JwtTokenProvider jwtTokenProvider;
+
+    private final PasswordEncoder passwordEncoder;
+
+
+    private final JwtTokenProvider jwtTokenProvider;
+
+    private final GradeService gradeService;
+
+    public UserService(UserRepository userRepository, GradeService gradeService,
+                       PasswordEncoder passwordEncoder,JwtTokenProvider jwtTokenProvider) {
+        this.userRepository = userRepository;
+        this.gradeService = gradeService;
+        this.passwordEncoder = passwordEncoder;
+        this.jwtTokenProvider = jwtTokenProvider;
+    }
 
     // 사용자 등록
     public User registerUser(UserDto userDto) {
@@ -135,5 +146,22 @@ public class UserService {
         } catch (Exception e) {
             throw new RuntimeException("Error deleting user: " + e.getMessage());
         }
+    }
+
+    @Transactional
+    public void updateUserActivity(User user, int questions, int accepted, int likes, int purchases, int sales) {
+        user.setQuestionCount(user.getQuestionCount() + questions);
+        user.setAcceptedCount(user.getAcceptedCount() + accepted);
+        user.setLikeCount(user.getLikeCount() + likes);
+        user.setPurchasedMaterialCount(user.getPurchasedMaterialCount() + purchases);
+        user.setSoldMaterialCount(user.getSoldMaterialCount() + sales);
+
+        // 등급 즉시 업데이트
+        GradeType newGrade = gradeService.calculateGrade(user);
+        if (!user.getUserGrade().equals(newGrade)) {
+            user.setUserGrade(newGrade);
+        }
+
+        userRepository.save(user);
     }
 }
