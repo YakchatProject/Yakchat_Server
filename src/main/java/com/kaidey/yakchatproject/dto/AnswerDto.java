@@ -24,11 +24,10 @@ public class AnswerDto {
     private LocalDateTime modifiedAt; //수정 날짜
     private Integer likeCount;
 
-    public AnswerDto(String content, Long questionId, Long userId, boolean isAccepted) {
+    public AnswerDto(String content, Long questionId, Long userId) {
         this.content = content;
         this.questionId = questionId;
         this.userId = userId;
-        this.isAccepted = isAccepted;
     }
 
 //    작성 날짜: 답변 등록 시간 (LocalDateTime createdAt)

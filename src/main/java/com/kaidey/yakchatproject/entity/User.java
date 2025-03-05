@@ -1,6 +1,6 @@
-// User.java
 package com.kaidey.yakchatproject.entity;
 
+import com.kaidey.yakchatproject.entity.enums.GradeType;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -8,7 +8,6 @@ import lombok.Setter;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 import com.kaidey.yakchatproject.entity.enums.RoleType;
-import com.kaidey.yakchatproject.entity.enums.GradeType;
 
 import java.time.LocalDateTime;
 import java.util.*;
@@ -33,7 +32,7 @@ public class User implements UserDetails {
     private String school;
 
     @Column(nullable = false)
-    private String grade; // 학교 학년
+    private String grade; // 학교 학년 (등급과 별개)
 
     @Column(nullable = false)
     private Integer age;
@@ -46,6 +45,9 @@ public class User implements UserDetails {
 
     private LocalDateTime lastLoginAt;
 
+    @OneToOne(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
+    private UserGrade userGrade;
+
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.EAGER)
     private List<Image> images = new ArrayList<>();
 
@@ -55,6 +57,7 @@ public class User implements UserDetails {
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Answer> answers = new ArrayList<>();
 
+
     @ElementCollection(fetch = FetchType.EAGER)
     @CollectionTable(name = "user_roles", joinColumns = @JoinColumn(name = "user_id"))
     @Enumerated(EnumType.STRING)
@@ -63,16 +66,6 @@ public class User implements UserDetails {
 
     @ElementCollection(fetch = FetchType.EAGER)
     private List<String> authorities = new ArrayList<>();
-
-    @Enumerated(EnumType.STRING)
-    @Column(nullable = false)
-    private GradeType userGrade = GradeType.GRAY; // 기본 등급
-
-    private int questionCount = 0;
-    private int acceptedCount = 0;
-    private int likeCount = 0;
-    private int purchasedMaterialCount = 0;
-    private int soldMaterialCount = 0;
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
@@ -114,4 +107,14 @@ public class User implements UserDetails {
     public void updateLastLogin() {
         this.lastLoginAt = LocalDateTime.now();
     }
+
+
+
+
+
+
+
+
+
+
 }

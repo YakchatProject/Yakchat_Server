@@ -1,5 +1,4 @@
 package com.kaidey.yakchatproject.controller;
-import com.kaidey.yakchatproject.dto.ImageDto;
 import com.kaidey.yakchatproject.dto.QuestionDto;
 import com.kaidey.yakchatproject.service.QuestionService;
 import com.kaidey.yakchatproject.util.ImageUtils;
@@ -7,14 +6,9 @@ import com.kaidey.yakchatproject.security.JwtTokenProvider;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.multipart.MultipartFile;
 import org.apache.tika.mime.MimeTypeException;
-import java.util.Base64;
-import java.io.File;
-import java.util.UUID;
 
-import java.io.IOException;
-import java.util.ArrayList;
+
 import java.util.List;
 
 @RestController

@@ -1,7 +1,6 @@
 package com.kaidey.yakchatproject.controller;
 
 import com.kaidey.yakchatproject.dto.ProfileDto;
-import com.kaidey.yakchatproject.dto.ImageDto;
 import com.kaidey.yakchatproject.service.ProfileService;
 import com.kaidey.yakchatproject.security.JwtTokenProvider;
 import com.kaidey.yakchatproject.util.ImageUtils;
@@ -9,10 +8,8 @@ import org.apache.tika.mime.MimeTypeException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.multipart.MultipartFile;
 import java.util.List;
-import java.util.ArrayList;
-import java.io.IOException;
+
 
 
 @RestController

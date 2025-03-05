@@ -1,10 +1,8 @@
 package com.kaidey.yakchatproject.controller;
 
 import com.kaidey.yakchatproject.entity.User;
-import org.apache.tika.mime.MimeTypeException;
-import org.springframework.security.core.annotation.AuthenticationPrincipal;
-import org.springframework.security.core.userdetails.UserDetails;
-import com.kaidey.yakchatproject.dto.ImageDto;
+import com.kaidey.yakchatproject.service.UserService;
+
 import org.springframework.http.HttpStatus;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -19,11 +17,6 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 import java.util.Map;
 import java.util.HashMap;
-import org.springframework.util.MultiValueMap;
-
-import java.io.IOException;
-import java.util.ArrayList;
-
 
 @RestController
 @RequestMapping("/api/answers")
@@ -35,13 +28,14 @@ public class AnswerController {
 
     private final AnswerService answerService;
     private final JwtTokenProvider jwtTokenProvider;
-    private final ImageUtils imageUtils;
+    private final UserService userService;
 
     @Autowired
-    public AnswerController(AnswerService answerService, JwtTokenProvider jwtTokenProvider, ImageUtils imageUtils) {
+    public AnswerController(AnswerService answerService, JwtTokenProvider jwtTokenProvider,
+                            UserService userService) {
         this.answerService = answerService;
         this.jwtTokenProvider = jwtTokenProvider;
-        this.imageUtils = imageUtils;
+        this.userService = userService ;
     }
 
     // 답변 생성
@@ -170,10 +164,24 @@ public class AnswerController {
 
     // 답변 채택
     @PostMapping("/{questionId}/accept/{answerId}")
-    public String acceptAnswer(@PathVariable Long questionId, @PathVariable Long answerId, @AuthenticationPrincipal User user) {
-        answerService.acceptAnswer(questionId, answerId, user);
-        return "답변이 채택되었습니다.";
+    public ResponseEntity<String> acceptAnswer(
+            @PathVariable Long questionId,
+            @PathVariable Long answerId,
+            @RequestHeader("Authorization") String token) {
+
+        Long userId = jwtTokenProvider.getUserIdFromToken(token.substring(7));
+        User user = userService.getUserById(userId);
+
+        try {
+            answerService.acceptAnswer(questionId, answerId, user);
+            return ResponseEntity.ok("답변이 채택되었습니다.");
+        } catch (IllegalStateException e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("서버 오류가 발생했습니다.");
+        }
     }
+
 
     @GetMapping("/{id}/likeCount")
     public ResponseEntity<Long> getAnswerLikeCount(@PathVariable Long id) {

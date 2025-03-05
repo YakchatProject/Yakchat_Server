@@ -13,8 +13,12 @@ import java.util.List;
 @RequestMapping("/api/subjects")
 public class SubjectController {
 
+    private final SubjectService subjectService;
+
     @Autowired
-    private SubjectService subjectService;
+    public SubjectController(SubjectService subjectService){
+        this.subjectService= subjectService;
+    }
 
     @GetMapping("/{id}")
     public ResponseEntity<SubjectDto> getSubjectById(@PathVariable Long id) {

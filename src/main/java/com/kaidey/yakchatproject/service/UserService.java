@@ -6,6 +6,8 @@ import com.kaidey.yakchatproject.repository.UserRepository;
 import com.kaidey.yakchatproject.security.JwtTokenProvider;
 import com.kaidey.yakchatproject.entity.enums.RoleType;
 import com.kaidey.yakchatproject.entity.enums.GradeType;
+import com.kaidey.yakchatproject.repository.UserGradeRepository;
+import com.kaidey.yakchatproject.entity.UserGrade;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -17,46 +19,45 @@ public class UserService {
 
 
     private final UserRepository userRepository;
-
-
     private final PasswordEncoder passwordEncoder;
-
-
     private final JwtTokenProvider jwtTokenProvider;
-
+    private final UserGradeRepository userGradeRepository;
     private final GradeService gradeService;
 
+
     public UserService(UserRepository userRepository, GradeService gradeService,
-                       PasswordEncoder passwordEncoder,JwtTokenProvider jwtTokenProvider) {
+                       PasswordEncoder passwordEncoder,JwtTokenProvider jwtTokenProvider,
+                       UserGradeRepository userGradeRepository) {
         this.userRepository = userRepository;
         this.gradeService = gradeService;
         this.passwordEncoder = passwordEncoder;
         this.jwtTokenProvider = jwtTokenProvider;
+        this.userGradeRepository = userGradeRepository;
     }
 
     // 사용자 등록
+    @Transactional
     public User registerUser(UserDto userDto) {
-        try {
-            // 유저 이름 중복 체크
-            if (userRepository.findByUsername(userDto.getUsername()).isPresent()) {
-                throw new RuntimeException("Username already exists");
-            }
-
-            User user = new User();
-            user.setUsername(userDto.getUsername());
-            user.setPassword(passwordEncoder.encode(userDto.getPassword())); // 비밀번호 암호화
-            user.setSchool(userDto.getSchool());
-            user.setGrade(userDto.getGrade());
-            user.setAge(userDto.getAge());
-
-            Set<RoleType> roles = new HashSet<>();
-            roles.add(RoleType.ROLE_USER); // 기본적으로 USER 역할 부여
-            user.setRoles(roles);
-
-            return userRepository.save(user);
-        } catch (Exception e) {
-            throw new RuntimeException("Error registering user: " + e.getMessage());
+        if (userRepository.findByUsername(userDto.getUsername()).isPresent()) {
+            throw new RuntimeException("Username already exists");
         }
+
+        User user = new User();
+        user.setUsername(userDto.getUsername());
+        user.setPassword(passwordEncoder.encode(userDto.getPassword())); // 비밀번호 암호화
+        user.setSchool(userDto.getSchool());
+        user.setGrade(userDto.getGrade());
+        user.setAge(userDto.getAge());
+
+        Set<RoleType> roles = new HashSet<>();
+        roles.add(RoleType.ROLE_USER); // 기본적으로 USER 역할 부여
+        user.setRoles(roles);
+
+        //  유저 저장 후 UserGrade 자동 생성
+        User savedUser = userRepository.save(user);
+        createUserGrade(savedUser);
+
+        return savedUser;
     }
 
     // 사용자 로그인
@@ -77,6 +78,9 @@ public class UserService {
             throw new RuntimeException("Error logging in user: " + e.getMessage());
         }
     }
+
+
+
 
     // 토큰 갱신
     public Map<String, String> refreshToken(String refreshToken) {
@@ -142,7 +146,9 @@ public class UserService {
     // 사용자 삭제
     public void deleteUser(Long id) {
         try {
-            userRepository.deleteById(id);
+            User user = getUserById(id);
+            userGradeRepository.deleteById(user.getId()); // UserGrade도 함께 삭제
+            userRepository.delete(user);
         } catch (Exception e) {
             throw new RuntimeException("Error deleting user: " + e.getMessage());
         }
@@ -150,18 +156,30 @@ public class UserService {
 
     @Transactional
     public void updateUserActivity(User user, int questions, int accepted, int likes, int purchases, int sales) {
-        user.setQuestionCount(user.getQuestionCount() + questions);
-        user.setAcceptedCount(user.getAcceptedCount() + accepted);
-        user.setLikeCount(user.getLikeCount() + likes);
-        user.setPurchasedMaterialCount(user.getPurchasedMaterialCount() + purchases);
-        user.setSoldMaterialCount(user.getSoldMaterialCount() + sales);
+        UserGrade userGrade = userGradeRepository.findByUserId(user.getId())
+                .orElseGet(() -> createUserGrade(user)); // userGrade가 없으면 생성
 
-        // 등급 즉시 업데이트
-        GradeType newGrade = gradeService.calculateGrade(user);
-        if (!user.getUserGrade().equals(newGrade)) {
-            user.setUserGrade(newGrade);
-        }
+        userGrade.setQuestionCount(userGrade.getQuestionCount() + questions);
+        userGrade.setAcceptedCount(userGrade.getAcceptedCount() + accepted);
+        userGrade.setLikeCount(userGrade.getLikeCount() + likes);
+        userGrade.setPurchasedMaterialCount(userGrade.getPurchasedMaterialCount() + purchases);
+        userGrade.setSoldMaterialCount(userGrade.getSoldMaterialCount() + sales);
 
-        userRepository.save(user);
+        // 등급 업데이트
+        gradeService.updateUserGrade(userGrade);
+        userGradeRepository.save(userGrade);
+    }
+
+    private UserGrade createUserGrade(User user) {
+        UserGrade newUserGrade = new UserGrade();
+        newUserGrade.setUser(user);
+        newUserGrade.setGrade(GradeType.GRAY);
+        newUserGrade.setQuestionCount(0);
+        newUserGrade.setAcceptedCount(0);
+        newUserGrade.setLikeCount(0);
+        newUserGrade.setPurchasedMaterialCount(0);
+        newUserGrade.setSoldMaterialCount(0);
+
+        return userGradeRepository.save(newUserGrade);
     }
 }
