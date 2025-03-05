@@ -7,19 +7,14 @@ import com.kaidey.yakchatproject.repository.QuestionRepository;
 import com.kaidey.yakchatproject.repository.SubjectRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import com.kaidey.yakchatproject.dto.ImageDto;
-import com.kaidey.yakchatproject.repository.LikeRepository;
-import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import com.kaidey.yakchatproject.repository.UserRepository;
 import com.kaidey.yakchatproject.exception.EntityNotFoundException;
-import org.springframework.web.bind.annotation.GetMapping;
 import java.util.List;
-import java.util.ArrayList;
+
 import java.util.stream.Collectors;
-import org.apache.tika.mime.MimeTypeException;
 import com.kaidey.yakchatproject.util.ImageUtils;
-import com.kaidey.yakchatproject.service.UserService;
 
 
 @Service

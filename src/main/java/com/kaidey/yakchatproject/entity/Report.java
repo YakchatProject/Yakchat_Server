@@ -36,11 +36,11 @@ public class Report {
     private ReportStatus status = ReportStatus.PENDING;
 
     @Column
-    private String evidence; // URL or path to evidence
+    private String evidence;
 
     @Column
-    private String handler; // Admin handling the report
+    private String handler;
 
     @Column
-    private String result; // Result of the report handling
+    private String result;
 }

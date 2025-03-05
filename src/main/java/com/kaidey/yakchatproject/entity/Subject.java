@@ -26,6 +26,4 @@ public class Subject {
     @JsonIgnore
     private List<Question> questions = new ArrayList<>();
 
-//    @OneToMany(mappedBy = "subject", cascade = CascadeType.ALL, orphanRemoval = true)
-//    private List<Image> images = new ArrayList<>();
 }
