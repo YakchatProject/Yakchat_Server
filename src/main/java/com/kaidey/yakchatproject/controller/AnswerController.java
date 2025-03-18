@@ -163,17 +163,17 @@ public class AnswerController {
     }
 
     // 답변 채택
-    @PostMapping("/{questionId}/accept/{answerId}")
+    @PostMapping("/{answerId}/accept")
     public ResponseEntity<String> acceptAnswer(
-            @PathVariable Long questionId,
             @PathVariable Long answerId,
             @RequestHeader("Authorization") String token) {
 
+        // JWT 토큰에서 유저 ID 추출
         Long userId = jwtTokenProvider.getUserIdFromToken(token.substring(7));
         User user = userService.getUserById(userId);
 
         try {
-            answerService.acceptAnswer(questionId, answerId, user);
+            answerService.acceptAnswer(answerId, user);
             return ResponseEntity.ok("답변이 채택되었습니다.");
         } catch (IllegalStateException e) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());

@@ -23,7 +23,7 @@ import com.kaidey.yakchatproject.dto.ImageDto;
 @RequestMapping("/images")
 public class ImageController {
 
-    @Value("${upload.dir}") // 이미지 저장 경로
+    @Value("${file.upload-dir}") // 이미지 저장 경로
     private String uploadDir;
 
     private final ImageService imageService;

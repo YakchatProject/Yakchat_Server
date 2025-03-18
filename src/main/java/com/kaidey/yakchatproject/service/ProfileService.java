@@ -25,7 +25,7 @@ public class ProfileService {
         this.userRepository = userRepository;
         this.imageUtils = imageUtils;
     }
-    @Value("${upload.dir}")
+    @Value("${file.upload-dir}")
     private String uploadDir;
 
 

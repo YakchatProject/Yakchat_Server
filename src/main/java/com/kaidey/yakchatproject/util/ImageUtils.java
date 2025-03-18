@@ -19,7 +19,7 @@ public class ImageUtils {
 
     private final Tika tika = new Tika();
 
-    @Value("${upload.dir}")
+    @Value("${file.upload-dir}")
     private String uploadDir;
 
     public List<ImageDto> processImages(List<String> base64Images) throws MimeTypeException {

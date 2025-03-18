@@ -178,28 +178,30 @@ public class AnswerService {
     }
 
     @Transactional
-    public void acceptAnswer(Long questionId, Long answerId, User user) {
-        Question question = questionRepository.findById(questionId)
-                .orElseThrow(() -> new IllegalArgumentException("해당 질문이 존재하지 않습니다."));
+    public void acceptAnswer(Long answerId, User user) {
+        // 답변 찾기
+        Answer answer = answerRepository.findById(answerId)
+                .orElseThrow(() -> new IllegalArgumentException("해당 답변이 존재하지 않습니다."));
 
+        // 질문 찾기
+        Question question = answer.getQuestion();
+
+        // 질문 작성자만 답변을 채택할 수 있도록 제한
         if (!question.getUser().getId().equals(user.getId())) {
             throw new IllegalStateException("질문 작성자만 답변을 채택할 수 있습니다.");
         }
 
         // 이미 채택된 답변이 있는지 확인
-        if (answerRepository.existsByQuestionIdAndIsAcceptedTrue(questionId)) {
-            throw new IllegalStateException("이미 채택된 답변이 있습니다.");
+        if (answerRepository.existsByQuestionIdAndIsAcceptedTrue(question.getId())) {
+            throw new IllegalStateException("이미 채택된 답변이 있습니다. 답변을 변경할 수 없습니다.");
         }
 
-        Answer answer = answerRepository.findById(answerId)
-                .orElseThrow(() -> new IllegalArgumentException("해당 답변이 존재하지 않습니다."));
-
+        // 답변 채택
         answer.setIsAccepted(true);
         answerRepository.save(answer);
 
-        // 답변 작성자의 채택 횟수 증가 및 등급 업데이트
-        User answerUser = answer.getUser();
-        userService.updateUserActivity(answerUser, 0, 1, 0, 0, 0);
+        // 답변 작성자의 활동 점수 업데이트 (예: 채택된 답변 개수 증가)
+        userService.updateUserActivity(answer.getUser(), 0, 1, 0, 0, 0);
     }
 
     @Transactional

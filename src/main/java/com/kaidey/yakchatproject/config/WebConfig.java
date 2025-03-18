@@ -10,7 +10,7 @@ import org.springframework.beans.factory.annotation.Value;
 @Configuration
 public class WebConfig implements WebMvcConfigurer {
 
-    @Value("${upload.dir}")
+    @Value("${file.upload-dir}")
     private String uploadDir;
 
     @Override
