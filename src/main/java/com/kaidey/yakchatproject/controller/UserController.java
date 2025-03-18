@@ -3,10 +3,14 @@ package com.kaidey.yakchatproject.controller;
 import com.kaidey.yakchatproject.dto.UserDto;
 import com.kaidey.yakchatproject.entity.User;
 import com.kaidey.yakchatproject.service.UserService;
+import com.kaidey.yakchatproject.util.CookieUtil;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import java.util.List;
 import java.util.Map;
 
@@ -14,8 +18,15 @@ import java.util.Map;
 @RequestMapping("/api/auth")
 public class UserController {
 
+    private final UserService userService;
+    private final CookieUtil cookieUtil;
+
     @Autowired
-    private UserService userService;
+    public UserController(UserService userService, CookieUtil cookieUtil) {
+        this.userService = userService;
+        this.cookieUtil = cookieUtil;
+    }
+
 
     @PostMapping("/register")
     public ResponseEntity<?> registerUser(@RequestBody UserDto userDto) {
@@ -30,28 +41,66 @@ public class UserController {
         }
     }
 
+//    @PostMapping("/login")
+//    public ResponseEntity<Map<String, String>> loginUser(@RequestBody UserDto userDto) {
+//        try {
+//            Map<String, String> tokens = userService.loginUser(userDto);
+//            return ResponseEntity.ok(tokens);
+//        } catch (RuntimeException e) {
+//            return ResponseEntity.status(403).body(null);
+//        }
+//    }
+
     @PostMapping("/login")
-    public ResponseEntity<Map<String, String>> loginUser(@RequestBody UserDto userDto) {
+    public ResponseEntity<?> loginUser(@RequestBody UserDto userDto, HttpServletResponse response) {
         try {
             Map<String, String> tokens = userService.loginUser(userDto);
-            return ResponseEntity.ok(tokens);
+
+            // JWT를 쿠키에 저장 (AccessToken & RefreshToken)
+            cookieUtil.addAccessToken(response, tokens.get("access_token"));
+            cookieUtil.addRefreshToken(response, tokens.get("refresh_token"));
+
+            return ResponseEntity.ok(Map.of("message", "Login successful"));
         } catch (RuntimeException e) {
-            return ResponseEntity.status(403).body(null);
+            return ResponseEntity.status(403).body(Map.of("error", "Invalid username or password"));
         }
     }
 
-
-
+//    @PostMapping("/refresh-token")
+//    public ResponseEntity<Map<String, String>> refreshToken(@RequestBody Map<String, String> request) {
+//        try {
+//            String refreshToken = request.get("refreshToken");
+//            Map<String, String> tokens = userService.refreshToken(refreshToken);
+//            return ResponseEntity.ok(tokens);
+//        } catch (RuntimeException e) {
+//            return ResponseEntity.status(403).body(null);
+//        }
+//    }
     @PostMapping("/refresh-token")
-    public ResponseEntity<Map<String, String>> refreshToken(@RequestBody Map<String, String> request) {
+    public ResponseEntity<?> refreshToken(HttpServletRequest request, HttpServletResponse response) {
         try {
-            String refreshToken = request.get("refreshToken");
+            String refreshToken = cookieUtil.getRefreshToken(request)
+                    .orElseThrow(() -> new RuntimeException("Refresh token not found"));
+
             Map<String, String> tokens = userService.refreshToken(refreshToken);
-            return ResponseEntity.ok(tokens);
+
+            // 새 토큰을 쿠키로 설정
+            cookieUtil.addAccessToken(response, tokens.get("access_token"));
+            cookieUtil.addRefreshToken(response, tokens.get("refresh_token"));
+
+            return ResponseEntity.ok(Map.of("message", "Token refreshed"));
         } catch (RuntimeException e) {
-            return ResponseEntity.status(403).body(null);
+            return ResponseEntity.status(403).body(Map.of("error", "Invalid refresh token"));
         }
     }
+
+    @PostMapping("/logout")
+    public ResponseEntity<?> logout(HttpServletResponse response) {
+        cookieUtil.deleteAccessToken(response);
+        cookieUtil.deleteRefreshToken(response);
+        return ResponseEntity.ok(Map.of("message", "Logged out"));
+    }
+
 
     @GetMapping("/check-username")
     public ResponseEntity<Boolean> checkUsernameExists(@RequestParam String username) {
@@ -82,4 +131,6 @@ public class UserController {
         userService.deleteUser(id);
         return ResponseEntity.noContent().build();
     }
+
+
 }
