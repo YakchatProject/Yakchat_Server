@@ -52,11 +52,11 @@ public class UserController {
 //    }
 
     @PostMapping("/login")
-    public ResponseEntity<?> loginUser(@RequestBody UserDto userDto, HttpServletResponse response, HttpServletRequest request) {
+    public ResponseEntity<?> loginUser(@RequestBody UserDto userDto, HttpServletResponse response) {
         try {
             Map<String, String> tokens = userService.loginUser(userDto);
 
-            cookieUtil.addAccessToken(response, tokens.get("access_token"), request);
+            cookieUtil.addAccessToken(response, tokens.get("access_token"));
             cookieUtil.addRefreshToken(response, tokens.get("refresh_token"));
 
             return ResponseEntity.ok(Map.of("message", "Login successful"));
@@ -75,6 +75,7 @@ public class UserController {
 //            return ResponseEntity.status(403).body(null);
 //        }
 //    }
+
     @PostMapping("/refresh-token")
     public ResponseEntity<?> refreshToken(HttpServletRequest request, HttpServletResponse response) {
         try {
@@ -83,8 +84,7 @@ public class UserController {
 
             Map<String, String> tokens = userService.refreshToken(refreshToken);
 
-            // 기존 access_token 제거 후 새 토큰 저장
-            cookieUtil.addAccessToken(response, tokens.get("access_token"), request);
+            cookieUtil.addAccessToken(response, tokens.get("access_token"));
             cookieUtil.addRefreshToken(response, tokens.get("refresh_token"));
 
             return ResponseEntity.ok(Map.of("message", "Token refreshed"));
@@ -94,11 +94,12 @@ public class UserController {
     }
 
     @PostMapping("/logout")
-    public ResponseEntity<?> logout(HttpServletResponse response) {
-        cookieUtil.deleteAccessToken(response);
-        cookieUtil.deleteRefreshToken(response);
+    public ResponseEntity<?> logout(HttpServletResponse response, HttpServletRequest request) {
+        cookieUtil.deleteAccessToken(response, request);
+        cookieUtil.deleteRefreshToken(response, request);
         return ResponseEntity.ok(Map.of("message", "Logged out"));
     }
+
 
 
     @GetMapping("/check-username")

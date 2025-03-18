@@ -26,21 +26,18 @@ public class CookieUtil {
 
         response.addCookie(cookie);
 
+
     }
 
 
-    public void addAccessToken(HttpServletResponse response, String token, HttpServletRequest request) {
-        if (getAccessToken(request).isPresent()) {
-            deleteAccessToken(response);
-        }
+    public void addAccessToken(HttpServletResponse response, String token) {
         addCookie(response, "access_token", token, ACCESS_TOKEN_EXPIRATION);
     }
 
-
     public void addRefreshToken(HttpServletResponse response, String token) {
-        deleteRefreshToken(response); // 기존 쿠키 삭제
         addCookie(response, "refresh_token", token, REFRESH_TOKEN_EXPIRATION);
     }
+
 
     public Optional<String> getCookieValue(HttpServletRequest request, String name) {
         Cookie[] cookies = request.getCookies();
@@ -61,22 +58,29 @@ public class CookieUtil {
         return getCookieValue(request, "refresh_token");
     }
 
-    public void deleteCookie(HttpServletResponse response, String name) {
-        Cookie cookie = new Cookie(name, "");
-        cookie.setHttpOnly(true);
-        cookie.setSecure(true);
-        cookie.setPath("/");
-        cookie.setMaxAge(0);
-
-        response.addCookie(cookie);
+    public void deleteCookieIfExists(HttpServletResponse response, String name, HttpServletRequest request) {
+        if (getCookieValue(request, name).isPresent()) {
+            Cookie cookie = new Cookie(name, "");
+            cookie.setHttpOnly(true);
+            cookie.setSecure(true);
+            cookie.setPath("/");
+            cookie.setMaxAge(0);
+            response.addCookie(cookie);
+        }
     }
 
-
-    public void deleteAccessToken(HttpServletResponse response) {
-        deleteCookie(response, "access_token");
+    public void deleteAccessToken(HttpServletResponse response, HttpServletRequest request) {
+        deleteCookieIfExists(response, "access_token", request);
     }
 
-    public void deleteRefreshToken(HttpServletResponse response) {
-        deleteCookie(response, "refresh_token");
+    public void deleteRefreshToken(HttpServletResponse response, HttpServletRequest request) {
+        deleteCookieIfExists(response, "refresh_token", request);
+    }
+
+    private boolean isProductionEnvironment() {
+        String environment = System.getenv("ENVIRONMENT"); // 환경 변수에서 값 가져오기
+        return environment != null && environment.equals("production"); // 배포 환경이면 Secure=true
     }
 }
+
+
