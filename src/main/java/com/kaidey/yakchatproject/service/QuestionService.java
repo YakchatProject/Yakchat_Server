@@ -2,25 +2,26 @@ package com.kaidey.yakchatproject.service;
 
 import com.kaidey.yakchatproject.dto.QuestionDto;
 import com.kaidey.yakchatproject.entity.*;
-import com.kaidey.yakchatproject.repository.LikeRepository;
-import com.kaidey.yakchatproject.repository.QuestionRepository;
-import com.kaidey.yakchatproject.repository.SubjectRepository;
-import org.springframework.beans.factory.annotation.Autowired;
+import com.kaidey.yakchatproject.repository.*;
+import com.kaidey.yakchatproject.exception.EntityNotFoundException;
 import com.kaidey.yakchatproject.dto.ImageDto;
+import com.kaidey.yakchatproject.util.ImageUtils;
+import com.kaidey.yakchatproject.dto.QuestionWithAnswersDto;
+import com.kaidey.yakchatproject.dto.AnswerDto;
+
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import com.kaidey.yakchatproject.repository.UserRepository;
-import com.kaidey.yakchatproject.exception.EntityNotFoundException;
-import java.util.List;
 
+import java.util.List;
 import java.util.stream.Collectors;
-import com.kaidey.yakchatproject.util.ImageUtils;
 
 
 @Service
 public class QuestionService {
 
     private final QuestionRepository questionRepository;
+    private final AnswerRepository answerRepository;
     private final SubjectRepository subjectRepository;
     private final UserRepository userRepository;
     private final LikeRepository likeRepository;
@@ -29,8 +30,10 @@ public class QuestionService {
 
     @Autowired
     public QuestionService(QuestionRepository questionRepository, SubjectRepository subjectRepository,
-                           UserRepository userRepository, LikeRepository likeRepository,UserService userService) {
+                           UserRepository userRepository, LikeRepository likeRepository,UserService userService,
+                           AnswerRepository answerRepository) {
         this.questionRepository = questionRepository;
+        this.answerRepository = answerRepository;
         this.subjectRepository = subjectRepository;
         this.userRepository = userRepository;
         this.likeRepository = likeRepository;
@@ -82,6 +85,28 @@ public class QuestionService {
         question.incrementViewCount(); // Increment view count
         questionRepository.save(question); //
         return convertToDto(question);
+    }
+
+    // 질문 + 답변 조회
+    @Transactional
+    public QuestionWithAnswersDto getQuestionWithAnswers(Long questionId) {
+        Question question = questionRepository.findById(questionId)
+                .orElseThrow(() -> new EntityNotFoundException("Question not found"));
+
+        // 질문 조회수 증가
+        question.incrementViewCount();
+        questionRepository.save(question);
+
+        // 질문 DTO 생성
+        QuestionWithAnswersDto questionDto = convertToQuestionWithAnswersDto(question);
+
+        // 해당 질문의 답변 목록 추가
+        List<AnswerDto> answerDtos = answerRepository.findByQuestionIdOrderByCreatedAtDesc(questionId).stream()
+                .map(this::convertAnswerToDto)
+                .collect(Collectors.toList());
+
+        questionDto.setAnswers(answerDtos);
+        return questionDto;
     }
 
     // 모든 질문 조회
@@ -239,6 +264,43 @@ public class QuestionService {
 
         return questionDto;
     }
+
+    private AnswerDto convertAnswerToDto(Answer answer) {
+        AnswerDto answerDto = new AnswerDto();
+        answerDto.setId(answer.getId());
+        answerDto.setContent(answer.getContent());
+        answerDto.setQuestionId(answer.getQuestion().getId());
+        answerDto.setUserId(answer.getUser().getId());
+        answerDto.setCreatedAt(answer.getCreatedAt());
+        answerDto.setModifiedAt(answer.getModifiedAt());
+        answerDto.setLikeCount(answer.getLikes());
+        answerDto.setAccepted(answer.getIsAccepted());
+
+        // 이미지 추가
+        int totalSteps = answer.getContent().split("\n\n|\r\n\r\n").length;
+        answerDto.setImages(imageUtils.convertToImageMap(answer.getImages(), totalSteps));
+
+        return answerDto;
+    }
+
+    private QuestionWithAnswersDto convertToQuestionWithAnswersDto(Question question) {
+        QuestionWithAnswersDto dto = new QuestionWithAnswersDto();
+        dto.setId(question.getId());
+        dto.setTitle(question.getTitle());
+        dto.setContent(question.getContent());
+        dto.setIsAnonymous(question.getIsAnonymous());
+        dto.setSubjectId(question.getSubject().getId());
+        dto.setSubjectName(question.getSubject().getName());
+        dto.setUserId(question.getUser().getId());
+        dto.setUserName(question.getIsAnonymous() ? "" : question.getUser().getUsername());
+        dto.setCreatedAt(question.getCreatedAt());
+        dto.setUpdatedAt(question.getModifiedAt());
+        dto.setLikeCount(question.getLikes());
+        dto.setViewCount(question.getViewCount());
+        dto.setImages(imageUtils.convertToImageDtos(question.getImages()));
+        return dto;
+    }
+
 
 
 }

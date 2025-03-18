@@ -23,7 +23,7 @@ import java.util.Optional;
 public class ImageService {
 
 
-    @Value("${file.upload-dir}")
+    @Value("${upload.dir}")
     private String uploadDir;
 
     private final ImageRepository imageRepository;

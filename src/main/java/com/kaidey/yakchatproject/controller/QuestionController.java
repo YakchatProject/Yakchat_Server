@@ -1,8 +1,10 @@
 package com.kaidey.yakchatproject.controller;
+
 import com.kaidey.yakchatproject.dto.QuestionDto;
 import com.kaidey.yakchatproject.service.QuestionService;
 import com.kaidey.yakchatproject.util.ImageUtils;
 import com.kaidey.yakchatproject.security.JwtTokenProvider;
+import com.kaidey.yakchatproject.dto.QuestionWithAnswersDto;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -62,13 +64,18 @@ public class QuestionController {
     }
 
 
-
-
     // 질문 조회
     @GetMapping("/{id}")
     public ResponseEntity<QuestionDto> getQuestionById(@PathVariable Long id) {
         QuestionDto question = questionService.getQuestionById(id);
         return ResponseEntity.ok(question);
+    }
+
+    // 질문 + 답변 조회 API 추가
+    @GetMapping("/{id}/with-answers")
+    public ResponseEntity<QuestionWithAnswersDto> getQuestionWithAnswers(@PathVariable Long id) {
+        QuestionWithAnswersDto questionWithAnswers = questionService.getQuestionWithAnswers(id);
+        return ResponseEntity.ok(questionWithAnswers);
     }
 
     // 모든 질문 조회
