@@ -17,31 +17,28 @@ public class CookieUtil {
     @Value("${jwt.refreshExpiration}")
     private long REFRESH_TOKEN_EXPIRATION;
 
-    @Value("${server.servlet.session.cookie.same-site}")
-    private String SAME_SITE_ATTRIBUTE;
-
     public void addCookie(HttpServletResponse response, String name, String value, long maxAge) {
         Cookie cookie = new Cookie(name, value);
         cookie.setHttpOnly(true);
         cookie.setSecure(true);
         cookie.setPath("/");
-        cookie.setMaxAge((int) (maxAge / 1000));
-
-        //SameSite 속성 추가
-        response.addHeader("Set-Cookie", String.format(
-                "%s=%s; Max-Age=%d; Path=/; Secure; HttpOnly; SameSite=%s",
-                name, value, (int) (maxAge / 1000), SAME_SITE_ATTRIBUTE));
-
+        cookie.setMaxAge((int) (maxAge / 1000)); // JWT 만료 시간이 밀리초라면 유지, 아니라면 수정 필요
 
         response.addCookie(cookie);
+
     }
 
 
-    public void addAccessToken(HttpServletResponse response, String token) {
+    public void addAccessToken(HttpServletResponse response, String token, HttpServletRequest request) {
+        if (getAccessToken(request).isPresent()) {
+            deleteAccessToken(response);
+        }
         addCookie(response, "access_token", token, ACCESS_TOKEN_EXPIRATION);
     }
 
+
     public void addRefreshToken(HttpServletResponse response, String token) {
+        deleteRefreshToken(response); // 기존 쿠키 삭제
         addCookie(response, "refresh_token", token, REFRESH_TOKEN_EXPIRATION);
     }
 
@@ -65,17 +62,15 @@ public class CookieUtil {
     }
 
     public void deleteCookie(HttpServletResponse response, String name) {
-        Cookie cookie = new Cookie(name, null);
+        Cookie cookie = new Cookie(name, "");
         cookie.setHttpOnly(true);
         cookie.setSecure(true);
         cookie.setPath("/");
         cookie.setMaxAge(0);
-        response.addHeader("Set-Cookie", String.format(
-                "%s=; Max-Age=0; Path=/; Secure; HttpOnly; SameSite=%s",
-                name, SAME_SITE_ATTRIBUTE));
 
         response.addCookie(cookie);
     }
+
 
     public void deleteAccessToken(HttpServletResponse response) {
         deleteCookie(response, "access_token");

@@ -52,12 +52,11 @@ public class UserController {
 //    }
 
     @PostMapping("/login")
-    public ResponseEntity<?> loginUser(@RequestBody UserDto userDto, HttpServletResponse response) {
+    public ResponseEntity<?> loginUser(@RequestBody UserDto userDto, HttpServletResponse response, HttpServletRequest request) {
         try {
             Map<String, String> tokens = userService.loginUser(userDto);
 
-            // JWT를 쿠키에 저장 (AccessToken & RefreshToken)
-            cookieUtil.addAccessToken(response, tokens.get("access_token"));
+            cookieUtil.addAccessToken(response, tokens.get("access_token"), request);
             cookieUtil.addRefreshToken(response, tokens.get("refresh_token"));
 
             return ResponseEntity.ok(Map.of("message", "Login successful"));
@@ -84,8 +83,8 @@ public class UserController {
 
             Map<String, String> tokens = userService.refreshToken(refreshToken);
 
-            // 새 토큰을 쿠키로 설정
-            cookieUtil.addAccessToken(response, tokens.get("access_token"));
+            // 기존 access_token 제거 후 새 토큰 저장
+            cookieUtil.addAccessToken(response, tokens.get("access_token"), request);
             cookieUtil.addRefreshToken(response, tokens.get("refresh_token"));
 
             return ResponseEntity.ok(Map.of("message", "Token refreshed"));

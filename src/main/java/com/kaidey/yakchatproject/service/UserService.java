@@ -69,7 +69,7 @@ public class UserService {
                 String refreshToken = jwtTokenProvider.generateRefreshToken(userDto.getUsername(), userOptional.get().getId());
                 Map<String, String> tokens = new HashMap<>();
                 tokens.put("access_token", token);
-                tokens.put("refreshToken", refreshToken);
+                tokens.put("refresh_token", refreshToken);
                 return tokens;
             } else {
                 throw new RuntimeException("Invalid username or password");
