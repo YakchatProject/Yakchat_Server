@@ -6,6 +6,7 @@ import com.kaidey.yakchatproject.service.UserService;
 import com.kaidey.yakchatproject.util.CookieUtil;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -54,16 +55,16 @@ public class UserController {
     @PostMapping("/login")
     public ResponseEntity<?> loginUser(@RequestBody UserDto userDto, HttpServletResponse response) {
         try {
-            Map<String, String> tokens = userService.loginUser(userDto);
 
+            Map<String, String> tokens = userService.loginUser(userDto);
             cookieUtil.addAccessToken(response, tokens.get("access_token"));
             cookieUtil.addRefreshToken(response, tokens.get("refresh_token"));
-
-            return ResponseEntity.ok(Map.of("message", "Login successful"));
+            return ResponseEntity.ok("Login successful");
         } catch (RuntimeException e) {
-            return ResponseEntity.status(403).body(Map.of("error", "Invalid username or password"));
+            return ResponseEntity.status(403).body("Invalid username or password");
         }
     }
+
 
 //    @PostMapping("/refresh-token")
 //    public ResponseEntity<Map<String, String>> refreshToken(@RequestBody Map<String, String> request) {
@@ -85,21 +86,20 @@ public class UserController {
             Map<String, String> tokens = userService.refreshToken(refreshToken);
 
             cookieUtil.addAccessToken(response, tokens.get("access_token"));
-            cookieUtil.addRefreshToken(response, tokens.get("refresh_token"));
+            cookieUtil.addRefreshToken(response, tokens.get("refreshToken"));
 
-            return ResponseEntity.ok(Map.of("message", "Token refreshed"));
+            return ResponseEntity.ok("Token refreshed");
         } catch (RuntimeException e) {
-            return ResponseEntity.status(403).body(Map.of("error", "Invalid refresh token"));
+            return ResponseEntity.status(403).body("Invalid refresh token");
         }
     }
 
     @PostMapping("/logout")
-    public ResponseEntity<?> logout(HttpServletResponse response, HttpServletRequest request) {
-        cookieUtil.deleteAccessToken(response, request);
-        cookieUtil.deleteRefreshToken(response, request);
-        return ResponseEntity.ok(Map.of("message", "Logged out"));
+    public ResponseEntity<?> logout(HttpServletResponse response) {
+        cookieUtil.deleteAccessToken(response);
+        cookieUtil.deleteRefreshToken(response);
+        return ResponseEntity.ok("Logged out");
     }
-
 
 
     @GetMapping("/check-username")

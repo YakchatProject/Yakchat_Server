@@ -22,11 +22,12 @@ public class CookieUtil {
         cookie.setHttpOnly(true);
         cookie.setSecure(true);
         cookie.setPath("/");
-        cookie.setMaxAge((int) (maxAge / 1000)); // JWT 만료 시간이 밀리초라면 유지, 아니라면 수정 필요
+        cookie.setMaxAge((int) (maxAge / 1000));
+//        cookie.setAttribute("SameSite", "Strict");
+//        response.setHeader("Set-Cookie", name + "=" + value + "; Path=/; HttpOnly; Secure; SameSite=None");
 
-        response.addCookie(cookie);
-
-
+//        response.addCookie(cookie);
+        response.addHeader("Set-Cookie", name + "=" + value + "; Path=/; HttpOnly; Secure; SameSite=None");
     }
 
 
@@ -37,7 +38,6 @@ public class CookieUtil {
     public void addRefreshToken(HttpServletResponse response, String token) {
         addCookie(response, "refresh_token", token, REFRESH_TOKEN_EXPIRATION);
     }
-
 
     public Optional<String> getCookieValue(HttpServletRequest request, String name) {
         Cookie[] cookies = request.getCookies();
@@ -58,23 +58,23 @@ public class CookieUtil {
         return getCookieValue(request, "refresh_token");
     }
 
-    public void deleteCookieIfExists(HttpServletResponse response, String name, HttpServletRequest request) {
-        if (getCookieValue(request, name).isPresent()) {
-            Cookie cookie = new Cookie(name, "");
-            cookie.setHttpOnly(true);
-            cookie.setSecure(true);
-            cookie.setPath("/");
-            cookie.setMaxAge(0);
-            response.addCookie(cookie);
-        }
+    public void deleteCookie(HttpServletResponse response, String name) {
+        Cookie cookie = new Cookie(name, null);
+        cookie.setHttpOnly(true);
+        cookie.setSecure(true);
+        cookie.setPath("/");
+        cookie.setMaxAge(0);
+        response.setHeader("Set-Cookie", name + "=; Path=/; HttpOnly; Secure; SameSite=None; Max-Age=0");
+//        response.addHeader("Set-Cookie", name + "=; Path=/; HttpOnly; Secure; SameSite=None; Max-Age=0");
+        response.addCookie(cookie);
     }
 
-    public void deleteAccessToken(HttpServletResponse response, HttpServletRequest request) {
-        deleteCookieIfExists(response, "access_token", request);
+    public void deleteAccessToken(HttpServletResponse response) {
+        deleteCookie(response, "access_token");
     }
 
-    public void deleteRefreshToken(HttpServletResponse response, HttpServletRequest request) {
-        deleteCookieIfExists(response, "refresh_token", request);
+    public void deleteRefreshToken(HttpServletResponse response) {
+        deleteCookie(response, "refresh_token");
     }
 
     private boolean isProductionEnvironment() {
