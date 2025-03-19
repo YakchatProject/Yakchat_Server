@@ -17,8 +17,6 @@ import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
 import java.util.Arrays;
-import java.util.List;
-
 
 @Configuration
 @EnableWebSecurity
@@ -51,17 +49,18 @@ public class SecurityConfig {
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http.csrf(csrf -> csrf.disable()) // CSRF 비활성화
                 .cors(cors -> cors.configurationSource(corsConfigurationSource())) // CORS 설정
-                .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS)) // 세션 사용 안함
+                .sessionManagement(session -> session
+                        .sessionCreationPolicy(SessionCreationPolicy.STATELESS)) // Stateless 세션
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/api/auth/login","/api/auth/register",
-                                "/api/auth/check-username","/api/auth/refresh-token").permitAll()
+                                "/api/auth/check-username","/api/auth/refresh-token").permitAll()  // 인증 없이 접근 가능
                         .requestMatchers("/images/**").permitAll()
                         .requestMatchers("/api/answers/**").authenticated()
                         .requestMatchers("/api/questions/**").authenticated()
                         .requestMatchers("/api/profile/**").authenticated()
-                        .requestMatchers("/api/auth/verify-token").authenticated()
-                        .requestMatchers("/api/admin/**").hasRole("ADMIN")
-                        .anyRequest().authenticated()
+                        .requestMatchers("/api/auth/verify-token").authenticated() // 토큰 검증은 인증 필요
+                        .requestMatchers("/api/admin/**").hasRole("ADMIN") // ADMIN 권한 필요
+                        .anyRequest().authenticated() // 나머지는 인증 필요
                 );
 
         http.addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
@@ -71,24 +70,13 @@ public class SecurityConfig {
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
-        configuration.setAllowedOrigins(List.of(
-                "http://localhost:3000",
-                "https://your-ngrok-url.ngrok-free.app"
-        ));        configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS"));
-        configuration.setAllowCredentials(true);
-        configuration.setAllowedHeaders(Arrays.asList("Authorization", "Content-Type", "ngrok-skip-browser-warning"));
-        configuration.setExposedHeaders(List.of("Set-Cookie"));
+        configuration.setAllowedOrigins(Arrays.asList("http://localhost:3000","https://endlessly-cuddly-salmon.ngrok-free.app")); // 허용할 출처
+        configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS")); // 허용할 HTTP 메서드
+        configuration.setAllowCredentials(true); // 자격 증명 허용
+        configuration.setAllowedHeaders(Arrays.asList("Authorization", "Content-Type", "ngrok-skip-browser-warning")); // 허용할 헤더에 ngrok-skip-browser-warning 추가
 
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
-        source.registerCorsConfiguration("/**", configuration);
+        source.registerCorsConfiguration("/**", configuration); // 모든 경로에 대해 CORS 설정 적용
         return source;
     }
-
-//    @Bean
-//    public FilterRegistrationBean<CorsFilter> corsFilter() {
-//        FilterRegistrationBean<CorsFilter> bean = new FilterRegistrationBean<>(new CorsFilter(corsConfigurationSource()));
-//        bean.setOrder(Ordered.HIGHEST_PRECEDENCE);
-//        return bean;
-//    }
-
 }
