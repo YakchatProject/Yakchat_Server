@@ -11,7 +11,7 @@ public class QuestionWithAnswersDto {
     private Long id;
     private String title;
     private String content;
-    private Boolean isAnonymous;
+    private boolean isQuestionOwner;
     private Long subjectId;
     private String subjectName;
     private Long userId;

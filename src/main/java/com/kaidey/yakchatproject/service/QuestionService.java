@@ -8,6 +8,7 @@ import com.kaidey.yakchatproject.dto.ImageDto;
 import com.kaidey.yakchatproject.util.ImageUtils;
 import com.kaidey.yakchatproject.dto.QuestionWithAnswersDto;
 import com.kaidey.yakchatproject.dto.AnswerDto;
+import com.kaidey.yakchatproject.dto.QuestionLikeStatusDto;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -89,7 +90,7 @@ public class QuestionService {
 
     // 질문 + 답변 조회
     @Transactional
-    public QuestionWithAnswersDto getQuestionWithAnswers(Long questionId) {
+    public QuestionWithAnswersDto getQuestionWithAnswers(Long questionId, Long userId) {
         Question question = questionRepository.findById(questionId)
                 .orElseThrow(() -> new EntityNotFoundException("Question not found"));
 
@@ -100,9 +101,16 @@ public class QuestionService {
         // 질문 DTO 생성
         QuestionWithAnswersDto questionDto = convertToQuestionWithAnswersDto(question);
 
+        questionDto.setQuestionOwner(userId != null && userId.equals(question.getUser().getId()));
+
+
         // 해당 질문의 답변 목록 추가
         List<AnswerDto> answerDtos = answerRepository.findByQuestionIdOrderByCreatedAtDesc(questionId).stream()
                 .map(this::convertAnswerToDto)
+                .sorted((a1, a2) -> {
+                    if (a1.isAccepted() == a2.isAccepted()) return 0;
+                    return a1.isAccepted() ? -1 : 1;
+                })
                 .collect(Collectors.toList());
 
         questionDto.setAnswers(answerDtos);
@@ -228,10 +236,16 @@ public class QuestionService {
         likeRepository.deleteAll(likes);
     }
 
-    // 질문 좋아요 수 조회
     @Transactional
-    public long getQuestionLikeCount(Long questionId) {
-        return likeRepository.countByQuestionId(questionId);
+    public QuestionLikeStatusDto getQuestionLikeStatus(Long questionId, Long userId) {
+        long likeCount = likeRepository.countByQuestionId(questionId);
+        boolean isLiked = false;
+
+        if (userId != null) {
+            isLiked = !likeRepository.findByUserIdAndQuestionId(userId, questionId).isEmpty();
+        }
+
+        return new QuestionLikeStatusDto(likeCount, isLiked);
     }
 
     // 질문 검색

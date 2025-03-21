@@ -5,6 +5,7 @@ import com.kaidey.yakchatproject.service.QuestionService;
 import com.kaidey.yakchatproject.util.ImageUtils;
 import com.kaidey.yakchatproject.security.JwtTokenProvider;
 import com.kaidey.yakchatproject.dto.QuestionWithAnswersDto;
+import com.kaidey.yakchatproject.dto.QuestionLikeStatusDto;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -70,11 +71,17 @@ public class QuestionController {
     }
 
     // 질문 + 답변 조회 API 추가
+// QuestionController
     @GetMapping("/{id}/with-answers")
-    public ResponseEntity<QuestionWithAnswersDto> getQuestionWithAnswers(@PathVariable Long id) {
-        QuestionWithAnswersDto questionWithAnswers = questionService.getQuestionWithAnswers(id);
+    public ResponseEntity<QuestionWithAnswersDto> getQuestionWithAnswers(
+            @PathVariable Long id,
+            @RequestHeader("Authorization") String token) {
+
+        Long userId = jwtTokenProvider.getUserIdFromToken(token.substring(7));
+        QuestionWithAnswersDto questionWithAnswers = questionService.getQuestionWithAnswers(id, userId);
         return ResponseEntity.ok(questionWithAnswers);
     }
+
 
     // 모든 질문 조회
     @GetMapping
@@ -162,11 +169,17 @@ public class QuestionController {
 
 
 
-    // 질문 좋아요 수 조회
     @GetMapping("/{id}/likeCount")
-    public ResponseEntity<Long> getQuestionLikeCount(@PathVariable Long id) {
-        long likeCount = questionService.getQuestionLikeCount(id);
-        return ResponseEntity.ok(likeCount);
+    public ResponseEntity<QuestionLikeStatusDto> getQuestionLikeCount(
+            @PathVariable Long id,
+            @RequestHeader(value = "Authorization", required = false) String token) {
+
+        Long userId = (token != null && token.startsWith("Bearer "))
+                ? jwtTokenProvider.getUserIdFromToken(token.substring(7))
+                : null;
+
+        QuestionLikeStatusDto status = questionService.getQuestionLikeStatus(id, userId);
+        return ResponseEntity.ok(status);
     }
 
     // 질문 좋아요
