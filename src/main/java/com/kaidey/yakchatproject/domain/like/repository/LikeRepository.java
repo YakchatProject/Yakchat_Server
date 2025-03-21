@@ -1,6 +1,6 @@
-package com.kaidey.yakchatproject.repository;
+package com.kaidey.yakchatproject.domain.like.repository;
 
-import com.kaidey.yakchatproject.entity.Like;
+import com.kaidey.yakchatproject.domain.like.entity.Like;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
