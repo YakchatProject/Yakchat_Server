@@ -14,7 +14,7 @@ public class AnswerDto {
     private Long id;
     private String content; //내용
     private boolean isAccepted; //채탣
-    private Boolean isAnonymous; // 익명 여부 추가
+//    private Boolean isAnonymous; // 익명 여부 추가
     private Long userId;
     private String userName;
     private Long questionId;

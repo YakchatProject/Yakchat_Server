@@ -237,6 +237,7 @@ public class AnswerService {
         answerDto.setContent(answer.getContent());
         answerDto.setQuestionId(answer.getQuestion().getId());
         answerDto.setUserId(answer.getUser().getId());
+        answerDto.setUserName(answer.getUser().getUsername());
         answerDto.setCreatedAt(answer.getCreatedAt());
         answerDto.setModifiedAt(answer.getModifiedAt());
         answerDto.setLikeCount(answer.getLikes());

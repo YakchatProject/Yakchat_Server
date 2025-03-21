@@ -99,6 +99,11 @@ public class User implements UserDetails {
         return true;
     }
 
+//    @Override
+//    public String getName() {
+//        return username;
+//    }
+
     @Override
     public boolean isEnabled() {
         return isActive;

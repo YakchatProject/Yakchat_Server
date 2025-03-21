@@ -45,8 +45,6 @@ public class ProfileService {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new RuntimeException("User not found"));
 
-
-
         if (profileDto.getImages() != null && !profileDto.getImages().isEmpty()) {
             user.getImages().clear();
             for (ImageDto imageDto : profileDto.getImages()) {
@@ -60,9 +58,8 @@ public class ProfileService {
 
         userRepository.save(user);
         return convertToProfileDto(user);
-
-
     }
+
 
     private ProfileDto convertToProfileDto(User user) {
         ProfileDto profileDto = new ProfileDto();

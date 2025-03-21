@@ -26,8 +26,8 @@ public class Question {
     @Column(nullable = false, length = 2000)
     private String content;
 
-    @Column(nullable = false)
-    private Boolean isAnonymous; // Add this field
+//    @Column(nullable = false)
+//    private Boolean isAnonymous; // Add this field
 
     @ManyToOne
     @JoinColumn(name = "subject_id", nullable = false)

@@ -16,7 +16,7 @@ public class QuestionDto {
     private Long id;
     private String title;
     private String content;
-    private Boolean isAnonymous;
+//    private Boolean isAnonymous;
     private Long subjectId; // 과목 ID
     private String subjectName;
     private Long userId;

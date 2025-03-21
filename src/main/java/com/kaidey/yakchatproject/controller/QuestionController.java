@@ -37,7 +37,6 @@ public class QuestionController {
             @RequestParam("title") String title,
             @RequestParam("content") String content,
             @RequestParam("subjectId") Long subjectId,
-            @RequestParam("isAnonymous") Boolean isAnonymous,
             @RequestParam(value = "images", required = false) List<String> images,  // List<String>으로 변경
             @RequestHeader("Authorization") String token) {
 
@@ -46,7 +45,6 @@ public class QuestionController {
         questionDto.setTitle(title);
         questionDto.setContent(content);
         questionDto.setSubjectId(subjectId);
-        questionDto.setIsAnonymous(isAnonymous);
         questionDto.setUserId(userId);
 
         // 이미지 처리 로직을 Service로 위임
@@ -131,7 +129,6 @@ public class QuestionController {
             @RequestParam("title") String title,
             @RequestParam("content") String content,
             @RequestParam("subjectId") Long subjectId,
-            @RequestParam("isAnonymous") Boolean isAnonymous,
             @RequestParam(value = "images", required = false) List<String> images,  // List<String>으로 변경
             @RequestHeader("Authorization") String token) {
 
@@ -140,7 +137,6 @@ public class QuestionController {
         questionDto.setTitle(title);
         questionDto.setContent(content);
         questionDto.setSubjectId(subjectId);
-        questionDto.setIsAnonymous(isAnonymous);
         questionDto.setUserId(userId);
 
         // 이미지 처리 로직을 Service로 위임

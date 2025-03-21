@@ -21,8 +21,7 @@ public class Answer {
     @Column(nullable = false)
     private String content; // 답변 내용
 
-    @Column(nullable = false)
-    private boolean isAnonymous = false;  // 익명 여부 추가
+
 
     @Column(nullable = false)
     private Boolean isAccepted = false; // 채택 여부

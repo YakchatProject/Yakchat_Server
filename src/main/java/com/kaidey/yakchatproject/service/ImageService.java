@@ -62,7 +62,7 @@ public class ImageService {
             }
 
             String fileName = UUID.randomUUID() + "_" + file.getOriginalFilename();
-            String filePath =  uploadDir + "/" + fileName;
+            String filePath = uploadDir + "/" + fileName;
             String mimeType = file.getContentType();
 
             File saveFile = new File(filePath);
@@ -72,14 +72,18 @@ public class ImageService {
             image.setFileName(fileName);
             image.setUrl(fileName);
             image.setMime(mimeType);
-            image.setAnswer(answer);
-            image.setStepIndex(i);
+            image.setStepIndex(i); // 프로필 이미지는 StepIndex를 따로 사용하지 않음
+
+            if (answer != null) {
+                image.setAnswer(answer);
+            }
 
             imageList.add(image);
         }
 
-        return imageRepository.saveAll(imageList.stream().filter(Objects::nonNull).toList());
+        return imageRepository.saveAll(imageList);
     }
+
 
 
 

@@ -54,7 +54,7 @@ public class QuestionService {
         Question question = new Question();
         question.setTitle(questionDto.getTitle());
         question.setContent(questionDto.getContent());
-        question.setIsAnonymous(questionDto.getIsAnonymous());
+//        question.setIsAnonymous(questionDto.getIsAnonymous());
         question.setSubject(subject);
         question.setUser(user);
         userService.updateUserActivity(user, 1, 0, 0, 0, 0);
@@ -175,7 +175,7 @@ public class QuestionService {
         // Question 세팅
         question.setTitle(questionDto.getTitle());
         question.setContent(questionDto.getContent());
-        question.setIsAnonymous(questionDto.getIsAnonymous());
+//        question.setIsAnonymous(questionDto.getIsAnonymous());
 
         // 이미지 처리
         if (questionDto.getImages() != null && !questionDto.getImages().isEmpty()) {
@@ -251,11 +251,11 @@ public class QuestionService {
         questionDto.setId(question.getId());
         questionDto.setTitle(question.getTitle());
         questionDto.setContent(question.getContent());
-        questionDto.setIsAnonymous(question.getIsAnonymous());
+//        questionDto.setIsAnonymous(question.getIsAnonymous());
         questionDto.setSubjectId(question.getSubject().getId());
         questionDto.setSubjectName(question.getSubject().getName()); // Set subject name
         questionDto.setUserId(question.getUser().getId());
-        questionDto.setUserName(question.getIsAnonymous() ? "" : question.getUser().getUsername()); // Set username based on anonymity
+        questionDto.setUserName(question.getUser().getUsername()); // Set username based on anonymity
         questionDto.setCreatedAt(question.getCreatedAt());
         questionDto.setUpdatedAt(question.getModifiedAt());
         questionDto.setLikeCount(question.getLikes());
@@ -271,6 +271,7 @@ public class QuestionService {
         answerDto.setContent(answer.getContent());
         answerDto.setQuestionId(answer.getQuestion().getId());
         answerDto.setUserId(answer.getUser().getId());
+        answerDto.setUserName(answer.getUser().getUsername());
         answerDto.setCreatedAt(answer.getCreatedAt());
         answerDto.setModifiedAt(answer.getModifiedAt());
         answerDto.setLikeCount(answer.getLikes());
@@ -288,11 +289,11 @@ public class QuestionService {
         dto.setId(question.getId());
         dto.setTitle(question.getTitle());
         dto.setContent(question.getContent());
-        dto.setIsAnonymous(question.getIsAnonymous());
+//        dto.setIsAnonymous(question.getIsAnonymous());
         dto.setSubjectId(question.getSubject().getId());
         dto.setSubjectName(question.getSubject().getName());
         dto.setUserId(question.getUser().getId());
-        dto.setUserName(question.getIsAnonymous() ? "" : question.getUser().getUsername());
+        dto.setUserName(question.getUser().getUsername());
         dto.setCreatedAt(question.getCreatedAt());
         dto.setUpdatedAt(question.getModifiedAt());
         dto.setLikeCount(question.getLikes());
