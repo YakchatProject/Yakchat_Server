@@ -22,7 +22,6 @@ public class QuestionController {
     private final JwtTokenProvider jwtTokenProvider;
     private final ImageUtils imageUtils;
 
-;
 
 
     @Autowired

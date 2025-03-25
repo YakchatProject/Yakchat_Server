@@ -6,7 +6,6 @@ import org.springframework.stereotype.Repository;
 
 @Repository
 public interface ImageRepository extends JpaRepository<Image, Long> {
-
     //  중복 체크 메서드 추가
     boolean existsByUrl(String url);
 }
