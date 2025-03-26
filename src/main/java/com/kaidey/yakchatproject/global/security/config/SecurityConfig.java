@@ -1,6 +1,7 @@
-package com.kaidey.yakchatproject.security;
+package com.kaidey.yakchatproject.global.security.config;
 
-import com.kaidey.yakchatproject.service.UserDetailsServiceImpl;
+import com.kaidey.yakchatproject.domain.user.service.UserDetailsServiceImpl;
+import com.kaidey.yakchatproject.global.security.jwt.JwtAuthenticationFilter;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -58,10 +59,15 @@ public class SecurityConfig {
                         .requestMatchers("/api/answers/**").authenticated()
                         .requestMatchers("/api/questions/**").authenticated()
                         .requestMatchers("/api/profile/**").authenticated()
-                        .requestMatchers("/api/auth/verify-token").authenticated() // 토큰 검증은 인증 필요
+                        .requestMatchers("/api/auth/verify-token").authenticated()
                         .requestMatchers("/api/admin/**").hasRole("ADMIN") // ADMIN 권한 필요
                         .anyRequest().authenticated() // 나머지는 인증 필요
                 );
+
+        http.headers(headers -> headers
+                .frameOptions(frameOptions -> frameOptions.sameOrigin()) // 프레임 내 렌더링 허용
+                .contentTypeOptions(contentTypeOptions -> contentTypeOptions.disable()) // nosniff 제거
+        );
 
         http.addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
         return http.build();
@@ -70,10 +76,21 @@ public class SecurityConfig {
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
-        configuration.setAllowedOrigins(Arrays.asList("http://localhost:3000","https://endlessly-cuddly-salmon.ngrok-free.app","https://yakchat-front.vercel.app","http://ec2-13-209-70-10.ap-northeast-2.compute.amazonaws.com")); // 허용할 출처
+        configuration.setAllowedOriginPatterns(Arrays.asList("*"));
+//        configuration.setAllowedOrigins(Arrays.asList("http://localhost:3000","https://endlessly-cuddly-salmon.ngrok-free.app","https://yakchat-front.vercel.app","http://ec2-13-209-70-10.ap-northeast-2.compute.amazonaws.com")); // 허용할 출처
         configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS")); // 허용할 HTTP 메서드
         configuration.setAllowCredentials(true); // 자격 증명 허용
-        configuration.setAllowedHeaders(Arrays.asList("Authorization", "Content-Type", "ngrok-skip-browser-warning")); // 허용할 헤더에 ngrok-skip-browser-warning 추가
+        configuration.setAllowedHeaders(Arrays.asList(
+                "Authorization",
+                "Content-Type",
+                "ngrok-skip-browser-warning",
+                "CF-Access-Client-Id",
+                "CF-Access-Client-Secret"
+        ));
+
+        configuration.setExposedHeaders(Arrays.asList(
+                "Content-Disposition","Content-Type", "Cache-Control"));
+        configuration.setMaxAge(3600L);
 
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         source.registerCorsConfiguration("/**", configuration); // 모든 경로에 대해 CORS 설정 적용

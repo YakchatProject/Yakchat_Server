@@ -24,6 +24,7 @@ public class Answer {
     @Column(nullable = false)
     private String content; // 답변 내용
 
+
     @Column(nullable = false)
     private Boolean isAccepted = false; // 채택 여부
 
