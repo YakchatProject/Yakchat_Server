@@ -1,31 +1,19 @@
-package com.kaidey.yakchatproject.domain.answer.service;
+package com.kaidey.yakchatproject.service;
 
-import com.kaidey.yakchatproject.domain.answer.controller.AnswerController;
-import com.kaidey.yakchatproject.domain.answer.dto.AnswerDto;
-import com.kaidey.yakchatproject.domain.answer.entity.Answer;
-import com.kaidey.yakchatproject.domain.answer.repository.AnswerRepository;
-import com.kaidey.yakchatproject.domain.image.entity.Image;
-import com.kaidey.yakchatproject.domain.image.repository.ImageRepository;
-import com.kaidey.yakchatproject.domain.like.entity.Like;
-import com.kaidey.yakchatproject.domain.question.entity.Question;
-import com.kaidey.yakchatproject.domain.like.repository.LikeRepository;
-import com.kaidey.yakchatproject.domain.question.repository.QuestionRepository;
-import com.kaidey.yakchatproject.domain.user.entity.User;
-import com.kaidey.yakchatproject.domain.user.repository.UserRepository;
-import com.kaidey.yakchatproject.global.exception.EntityNotFoundException;
-import com.kaidey.yakchatproject.domain.image.service.ImageService;
-import com.kaidey.yakchatproject.domain.user.service.UserService;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import com.kaidey.yakchatproject.dto.AnswerDto;
+import com.kaidey.yakchatproject.entity.*;
+import com.kaidey.yakchatproject.exception.EntityNotFoundException;
+import com.kaidey.yakchatproject.repository.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import com.kaidey.yakchatproject.domain.image.util.ImageUtils;
+import com.kaidey.yakchatproject.util.ImageUtils;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.stream.Collectors;
-import org.springframework.web.multipart.MultipartFile;
 import java.io.IOException;
+import org.springframework.web.multipart.MultipartFile;
+import java.util.stream.Collectors;
+import java.util.Map;
 
 
 @Service
@@ -36,61 +24,56 @@ public class AnswerService {
     private final UserRepository userRepository;
     private final LikeRepository likeRepository;
     private final ImageUtils imageUtils = new ImageUtils();
-    private final ImageRepository imageRepository;
     private final ImageService imageService;
-    private final UserService userService;
-    private static final Logger log = LoggerFactory.getLogger(AnswerController.class);
+    private final ImageRepository imageRepository;
 
 
     @Autowired
     public AnswerService(AnswerRepository answerRepository,
                          QuestionRepository questionRepository,
-                         UserRepository userRepository, LikeRepository likeRepository,
-                         ImageRepository imageRepository, ImageService imageService,
-                         UserService userService) {
+                         UserRepository userRepository, LikeRepository likeRepository, ImageService imageService, ImageRepository imageRepository) {
         this.answerRepository = answerRepository;
         this.questionRepository = questionRepository;
         this.userRepository = userRepository;
         this.likeRepository = likeRepository;
-        this.imageRepository = imageRepository;
         this.imageService = imageService;
-        this.userService = userService;
+        this.imageRepository = imageRepository;
     }
 
     // 답변 생성
     @Transactional
-    public AnswerDto createAnswer(AnswerDto answerDto, List<MultipartFile> images) throws IOException {
-        // Question과 User 찾기
+    public AnswerDto createAnswer(AnswerDto answerDto, Long userId, List<MultipartFile> images) throws IOException {
         Question question = questionRepository.findById(answerDto.getQuestionId())
                 .orElseThrow(() -> new EntityNotFoundException("Question not found"));
 
-        User user = userRepository.findById(answerDto.getUserId())
+        User user = userRepository.findById(userId)
                 .orElseThrow(() -> new EntityNotFoundException("User not found"));
 
-        // Answer 객체 생성
         Answer answer = new Answer();
         answer.setContent(answerDto.getContent());
         answer.setQuestion(question);
         answer.setUser(user);
 
-        // 이미지가 있으면 미리 리스트에 추가
-        List<Image> imageList = new ArrayList<>();
-        if (images != null && !images.isEmpty()) {
-            imageList = imageService.saveImages(images, answer);
-            answer.setImages(imageList);
-        }
-
-        // Answer 저장
+        // 답변 저장
         Answer savedAnswer = answerRepository.save(answer);
 
-        log.info("Saved answer ID: {}, Images count: {}", savedAnswer.getId(), savedAnswer.getImages() != null ? savedAnswer.getImages().size() : "null");
+        // 이미지 저장 및 연결
+        if (images != null && !images.isEmpty()) {
+            Map<String, String> imageMap = imageService.saveImages(images, null, savedAnswer.getId(), userId);
+
+            List<Image> imageList = new ArrayList<>();
+            for (Map.Entry<String, String> entry : imageMap.entrySet()) {
+                Image image = new Image();
+                image.setUrl(entry.getValue());
+                image.setFileName(entry.getKey());
+                image.setAnswer(savedAnswer);
+                imageList.add(image);
+            }
+            savedAnswer.setImages(imageList);
+        }
 
         return convertToDto(savedAnswer);
     }
-
-
-
-
 
 
 
@@ -122,6 +105,7 @@ public class AnswerService {
                 .collect(Collectors.toList());
     }
 
+
     // 모든 답변 조회
     @Transactional
     public List<AnswerDto> getAllAnswers() {
@@ -130,13 +114,14 @@ public class AnswerService {
                 .collect(Collectors.toList());
     }
 
-    // 답변 업데이트
+    //답변 업데이트
     @Transactional
-    public AnswerDto updateAnswer(Long id, AnswerDto answerDto,  List<MultipartFile> images, List<Long> deleteImageIds) throws IOException {
+    public AnswerDto updateAnswer(Long id, AnswerDto answerDto, List<MultipartFile> images, List<Long> deleteImageIds) throws IOException {
         // Answer 찾기
         Answer answer = answerRepository.findById(id)
                 .orElseThrow(() -> new EntityNotFoundException("Answer not found with id: " + id));
 
+        // Answer 업데이트
         answer.setContent(answerDto.getContent());
 
         // Question 찾기 및 설정
@@ -144,7 +129,7 @@ public class AnswerService {
                 .orElseThrow(() -> new EntityNotFoundException("Question not found with id: " + answerDto.getQuestionId()));
         answer.setQuestion(question);
 
-        // 삭제할 이미지가 있다면 제거
+        // ✅ 삭제할 이미지가 있다면 제거
         if (deleteImageIds != null && !deleteImageIds.isEmpty()) {
             List<Image> imagesToDelete = imageRepository.findAllById(deleteImageIds);
             for (Image image : imagesToDelete) {
@@ -153,15 +138,24 @@ public class AnswerService {
             }
         }
 
-        // 새로운 이미지 추가
+        // ✅ 새로운 이미지 추가
         if (images != null && !images.isEmpty()) {
-            List<Image> savedImages = imageService.saveImages(images, answer);
-            answer.getImages().addAll(savedImages);
+            Map<String, String> imageMap = imageService.saveImages(images, null, id, answer.getUser().getId());
+
+            List<Image> newImages = new ArrayList<>();
+            for (Map.Entry<String, String> entry : imageMap.entrySet()) {
+                Image image = new Image();
+                image.setUrl(entry.getValue());
+                image.setFileName(entry.getKey());
+                image.setAnswer(answer);
+                newImages.add(image);
+            }
+            answer.getImages().addAll(newImages);
         }
 
         answer.updateModifiedAt();
 
-        // DTO 변환 후 반환
+        // 답변 저장 후 DTO 변환
         return convertToDto(answerRepository.save(answer));
     }
 
@@ -181,33 +175,6 @@ public class AnswerService {
     @Transactional
     public void deleteAnswer(Long id) {
         answerRepository.deleteById(id);
-    }
-
-    @Transactional
-    public void acceptAnswer(Long answerId, User user) {
-        // 답변 찾기
-        Answer answer = answerRepository.findById(answerId)
-                .orElseThrow(() -> new IllegalArgumentException("해당 답변이 존재하지 않습니다."));
-
-        // 질문 찾기
-        Question question = answer.getQuestion();
-
-        // 질문 작성자만 답변을 채택할 수 있도록 제한
-        if (!question.getUser().getId().equals(user.getId())) {
-            throw new IllegalStateException("질문 작성자만 답변을 채택할 수 있습니다.");
-        }
-
-        // 이미 채택된 답변이 있는지 확인
-        if (answerRepository.existsByQuestionIdAndIsAcceptedTrue(question.getId())) {
-            throw new IllegalStateException("이미 채택된 답변이 있습니다. 답변을 변경할 수 없습니다.");
-        }
-
-        // 답변 채택
-        answer.setIsAccepted(true);
-        answerRepository.save(answer);
-
-        // 답변 작성자의 활동 점수 업데이트 (예: 채택된 답변 개수 증가)
-        userService.updateUserActivity(answer.getUser(), 0, 1, 0, 0, 0);
     }
 
     @Transactional
@@ -243,15 +210,17 @@ public class AnswerService {
         answerDto.setContent(answer.getContent());
         answerDto.setQuestionId(answer.getQuestion().getId());
         answerDto.setUserId(answer.getUser().getId());
-        answerDto.setUserName(answer.getUser().getUsername());
         answerDto.setCreatedAt(answer.getCreatedAt());
         answerDto.setModifiedAt(answer.getModifiedAt());
         answerDto.setLikeCount(answer.getLikes());
-        answerDto.setAccepted(answer.getIsAccepted());
-        int totalSteps = answer.getContent().split("\n\n|\r\n\r\n").length;
-        answerDto.setImages(imageUtils.convertToImageMap(answer.getImages(), totalSteps));
+        answerDto.setSubAnswers(new ArrayList<>()); // 하위 답변 리스트 초기화
+
+        // 기존 List<ImageDto> 대신 Map<String, String> 저장
+        answerDto.setImages(imageUtils.convertToImageMap(answer.getImages()));
 
         return answerDto;
     }
+
+
 
 }
